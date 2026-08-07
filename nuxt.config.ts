@@ -1,9 +1,10 @@
 import tailwindcss from "@tailwindcss/vite";
 import { defineNuxtConfig } from "nuxt/config";
 
-// https://nuxt.com/docs/api/configuration/nuxt-config
+// https://nuxt.com/docs/api/configuration/nuxt.config
 export default defineNuxtConfig({
-  css: ["./app/assets/main.css", "animate.css"],
+  css: ["animate.css"],
+  modules: ["@nuxt/ui"],
   runtimeConfig: {
     public: {
       apiBase: "/api/v1",
