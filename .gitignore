@@ -26,6 +26,7 @@ logs
 # Terraform
 .terraform/
 .terraform.lock.hcl
+infrastructure/build/
 *.tfstate
 *.tfstate.*
 crash.log

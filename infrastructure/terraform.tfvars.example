@@ -1,2 +1,4 @@
 aws_region  = "eu-north-1"
 bucket_name = "vocali-s3"
+cognito_user_pool_id = "eu-north-1_XXXXXXXXX"
+api_lambda_runtime = "nodejs20.x"

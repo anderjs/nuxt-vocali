@@ -17,3 +17,23 @@ output "dynamodb_table_arn" {
   description = "ARN of the DynamoDB table"
   value       = aws_dynamodb_table.app_table.arn
 }
+
+output "api_gateway_http_api_id" {
+  description = "ID of the HTTP API Gateway"
+  value       = aws_apigatewayv2_api.http_api.id
+}
+
+output "api_gateway_endpoint" {
+  description = "Invoke URL for the HTTP API"
+  value       = aws_apigatewayv2_api.http_api.api_endpoint
+}
+
+output "lambda_function_names" {
+  description = "Created Lambda handler names"
+  value       = [for fn in aws_lambda_function.handlers : fn.function_name]
+}
+
+output "api_cognito_authorizer_id" {
+  description = "Cognito JWT authorizer ID"
+  value       = aws_apigatewayv2_authorizer.cognito_jwt.id
+}

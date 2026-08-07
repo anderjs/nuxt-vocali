@@ -7,9 +7,13 @@
     "dev": "nuxt dev  --dotenv .env",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
-    "postinstall": "nuxt prepare"
+    "postinstall": "nuxt prepare",
+    "typecheck:lambda": "tsc -p server/tsconfig.json --noEmit",
+    "build:lambdas": "esbuild server/handlers/*.ts --platform=node --target=node20 --bundle --format=cjs --outdir=server/dist --outbase=server/handlers"
   },
   "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.1104.0",
+    "@aws-sdk/lib-dynamodb": "^3.1104.0",
     "@nuxt/ui": "^4.10.0",
     "@pinia/nuxt": "^1.0.1",
     "animate.css": "^4.1.1",
@@ -21,6 +25,9 @@
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.3.3",
+    "@types/aws-lambda": "^8.10.145",
+    "@types/node": "^20.19.8",
+    "esbuild": "^0.28.1",
     "tailwindcss": "^4.3.3"
   }
 }
