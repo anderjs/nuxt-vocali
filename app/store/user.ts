@@ -13,7 +13,7 @@ export const useAuthStore = defineStore("authStore", {
     }) as IUser,
   actions: {
     async signIn() {
-      userManager.signinPopup();
+      userManager.signinRedirect();
     },
     async logout() {
       userManager.signoutRedirect();
