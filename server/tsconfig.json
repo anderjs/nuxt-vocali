@@ -6,20 +6,22 @@
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "types": [
-      "node",
-      "aws-lambda"
-    ],
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./*"]
+    },
+    "types": ["node", "aws-lambda"],
     "outDir": "./dist"
   },
   "include": [
     "handlers/**/*.ts",
     "services/**/*.ts",
     "repositories/**/*.ts",
-    "types/**/*.ts"
+    "types/**/*.ts",
+    "config/**/*.ts",
+    "utils/**/*.ts",
+    "middleware/**/*.ts",
+    "middlewares/**/*.ts"
   ],
-  "exclude": [
-    "dist",
-    "node_modules"
-  ]
+  "exclude": ["dist", "node_modules"]
 }

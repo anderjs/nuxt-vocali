@@ -27,6 +27,7 @@
     "@tailwindcss/vite": "^4.3.3",
     "@types/aws-lambda": "^8.10.145",
     "@types/node": "^20.19.8",
+    "dotenv": "^17.4.2",
     "esbuild": "^0.28.1",
     "tailwindcss": "^4.3.3"
   }

@@ -1,10 +1,12 @@
 import type { APIGatewayProxyHandlerV2 } from "aws-lambda";
+import { authHandler } from "../middlewares/auth.middleware.js";
+import { HttpStatusCode } from "../utils/code.js";
 
-export const handler: APIGatewayProxyHandlerV2 = async () => {
+export const handler: APIGatewayProxyHandlerV2 = authHandler(async () => {
   return {
-    statusCode: 501,
     body: JSON.stringify({
-      message: "Not implemented",
+      data: [],
     }),
+    statusCode: HttpStatusCode.OK,
   };
-};
+});
