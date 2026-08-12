@@ -24,6 +24,7 @@
     "vue-router": "^5.2.0"
   },
   "devDependencies": {
+    "@iconify-json/lucide": "^1.2.123",
     "@tailwindcss/vite": "^4.3.3",
     "@types/aws-lambda": "^8.10.145",
     "@types/node": "^20.19.8",

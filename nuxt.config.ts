@@ -13,6 +13,9 @@ export default defineNuxtConfig({
   vite: {
     plugins: [tailwindcss()],
   },
+  routeRules: {
+    "/": { redirect: "/login" },
+  },
   devtools: { enabled: true },
   compatibilityDate: "2025-07-15",
 });
