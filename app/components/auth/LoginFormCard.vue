@@ -58,6 +58,30 @@
       >
         Iniciar sesión
       </UButton>
+
+      <UButton
+        type="button"
+        block
+        size="xl"
+        color="neutral"
+        variant="outline"
+        class="h-12 cursor-pointer rounded-xl border-border bg-background font-semibold text-foreground shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/30 hover:bg-surface-purple-subtle hover:shadow-md focus-visible:outline-primary active:translate-y-0"
+        @click="emit('googleSignIn')"
+      >
+        <span class="grid w-full grid-cols-[1fr_auto_1fr] items-center">
+          <span aria-hidden="true" />
+          <span class="flex items-center justify-center gap-3">
+            <span>Continuar con Google</span>
+            <span
+              class="flex size-6 items-center justify-center rounded-full bg-background text-primary shadow-xs ring-1 ring-border"
+              aria-hidden="true"
+            >
+              <UIcon name="i-vocali-google" class="size-4" />
+            </span>
+          </span>
+          <span aria-hidden="true" />
+        </span>
+      </UButton>
     </UForm>
   </UCard>
 </template>
@@ -70,6 +94,7 @@ import { authFormFieldUi, authInputUi } from "./form-ui";
 
 type Emit = {
   submit: [];
+  googleSignIn: [];
 };
 
 type LoginForm = {

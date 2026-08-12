@@ -6,18 +6,27 @@
       <LoginBrandPanel />
 
       <section class="flex w-full justify-center lg:justify-end">
-        <LoginFormCard @submit="handleLogin" />
+        <LoginFormCard
+          @google-sign-in="handleGoogleSignIn"
+          @submit="handleLogin"
+        />
       </section>
     </div>
   </main>
 </template>
 
 <script setup lang="ts">
-import { navigateTo } from "#imports";
-import LoginBrandPanel from "~/components/auth/LoginBrandPanel.vue";
 import LoginFormCard from "~/components/auth/LoginFormCard.vue";
+import LoginBrandPanel from "~/components/auth/LoginBrandPanel.vue";
+import { useAuthStore } from "~/store/user";
+
+const authStore = useAuthStore();
 
 const handleLogin = async () => {
-  await navigateTo("/dashboard");
+  await authStore.signIn();
+};
+
+const handleGoogleSignIn = async () => {
+  await authStore.signInWithGoogle();
 };
 </script>
