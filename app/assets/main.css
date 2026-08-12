@@ -1,2 +1,53 @@
 @import "tailwindcss";
 @import "@nuxt/ui";
+
+:root {
+  --background: #ffffff;
+  --foreground: #17171b;
+
+  --primary: #5438e8;
+  --primary-hover: #4327d5;
+  --primary-light: #684cf2;
+
+  --lavender: #c8bcf5;
+  --surface-purple: #e8e3fa;
+  --surface-purple-subtle: #f4f1fc;
+
+  --text-secondary: #65656f;
+  --text-muted: #92919a;
+
+  --border: #e8e7ec;
+}
+
+@theme {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-light: var(--primary-light);
+
+  --color-lavender: var(--lavender);
+  --color-surface-purple: var(--surface-purple);
+  --color-surface-purple-subtle: var(--surface-purple-subtle);
+
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted: var(--text-muted);
+
+  --color-border: var(--border);
+}
+
+@layer base {
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  * {
+    border-color: var(--color-border);
+  }
+}

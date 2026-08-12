@@ -3,7 +3,7 @@ import { defineNuxtConfig } from "nuxt/config";
 
 // https://nuxt.com/docs/api/configuration/nuxt.config
 export default defineNuxtConfig({
-  css: ["animate.css"],
+  css: ["animate.css", "~/assets/main.css"],
   modules: ["@nuxt/ui", "@pinia/nuxt"],
   runtimeConfig: {
     public: {
