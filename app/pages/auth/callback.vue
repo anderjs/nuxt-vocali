@@ -1,5 +1,5 @@
 <template>
-  <main class="flex min-h-screen items-center justify-center bg-surface-purple-subtle px-6">
+  <main class="flex min-h-dvh items-center justify-center bg-surface-purple-subtle px-6">
     <UCard class="w-full max-w-sm rounded-2xl bg-background shadow-sm ring-border">
       <div class="space-y-3 text-center">
         <p class="text-base font-semibold text-foreground">Iniciando sesión</p>
@@ -12,18 +12,11 @@
 </template>
 
 <script setup lang="ts">
-import { navigateTo, onMounted } from "#imports";
-import { useAuthStore } from "~/store/user";
+import { useAuthStore } from "~/stores/auth";
 
 const authStore = useAuthStore();
 
 onMounted(async () => {
-  try {
-    await authStore.handleSigninCallback();
-    await navigateTo("/dashboard");
-  } catch (error) {
-    console.error("Cognito callback failed", error);
-    await navigateTo("/login");
-  }
+  await navigateTo(authStore.isAuthenticated ? "/dashboard" : "/login");
 });
 </script>

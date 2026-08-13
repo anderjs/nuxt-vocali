@@ -17,11 +17,26 @@
       </p>
     </header>
 
-    <UForm :state="form" class="space-y-5" @submit="emit('submit')">
+    <UAlert
+      v-if="errorMessage"
+      class="mb-5"
+      color="error"
+      variant="soft"
+      icon="i-lucide-circle-alert"
+      :description="errorMessage"
+    />
+
+    <UForm
+      :schema="loginSchema"
+      :state="form"
+      class="space-y-5"
+      @submit="handleSubmit"
+    >
       <UFormField
         label="Correo electrónico"
         name="email"
         size="lg"
+        required
         :ui="authFormFieldUi"
       >
         <UInput
@@ -33,7 +48,6 @@
           variant="outline"
           placeholder="correo@ejemplo.com"
           autocomplete="email"
-          required
           :ui="authInputUi"
         />
       </UFormField>
@@ -41,12 +55,13 @@
       <PasswordField v-model="form.password" />
 
       <div class="flex items-center justify-end">
-        <button
+        <UButton
           type="button"
-          class="text-sm font-medium text-primary transition-colors hover:text-primary-hover focus-visible:rounded focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
-        >
-          ¿Olvidaste tu contraseña?
-        </button>
+          color="primary"
+          variant="link"
+          class="p-0 text-sm"
+          label="¿Olvidaste tu contraseña?"
+        />
       </div>
 
       <UButton
@@ -87,20 +102,20 @@
 </template>
 
 <script setup lang="ts">
-import { reactive } from "vue";
+import type { FormSubmitEvent } from "@nuxt/ui";
 import AuthLogo from "./AuthLogo.vue";
 import PasswordField from "./PasswordField.vue";
 import { authFormFieldUi, authInputUi } from "./form-ui";
+import { loginSchema, type LoginSchema } from "~/schemas/login.schema";
 
 type Emit = {
-  submit: [];
+  submit: [credentials: LoginSchema];
   googleSignIn: [];
 };
 
-type LoginForm = {
-  email: string;
-  password: string;
-};
+defineProps<{
+  errorMessage?: string;
+}>();
 
 const emit = defineEmits<Emit>();
 
@@ -108,8 +123,12 @@ const cardUi = {
   body: "p-7 sm:p-9",
 } as const;
 
-const form = reactive<LoginForm>({
+const form = reactive<LoginSchema>({
   email: "",
   password: "",
 });
+
+function handleSubmit(event: FormSubmitEvent<LoginSchema>): void {
+  emit("submit", event.data);
+}
 </script>
