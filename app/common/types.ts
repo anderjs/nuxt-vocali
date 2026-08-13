@@ -29,6 +29,11 @@ export type TranscriptionsTableEmit = {
   next: [cursor: string];
 };
 
+export interface ListTranscriptionsParams {
+  cursor?: string;
+  limit: number;
+}
+
 export type AuthIdentityUser = Pick<AuthUser, "email" | "username">;
 
 export type QueryValue = string | null | (string | null)[] | undefined;

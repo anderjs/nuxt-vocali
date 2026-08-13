@@ -2,13 +2,22 @@ import type { APIGatewayProxyHandlerV2 } from "aws-lambda";
 import { authHandler } from "../middlewares/auth.middleware";
 import { HttpStatusCode } from "../utils/code";
 import { transcriptionRepository } from "../repositories/transcription.repository";
-import { listTranscriptionsResponseSchema } from "../types/transcription";
+import {
+  listTranscriptionsQuerySchema,
+  listTranscriptionsResponseSchema,
+} from "../types/transcription";
 
 export const handler: APIGatewayProxyHandlerV2 = authHandler(
-  async (_event, claims) => {
-    const data = await transcriptionRepository.listTranscriptions(claims.sub!);
+  async (event, claims) => {
+    const query = listTranscriptionsQuerySchema.parse(
+      event.queryStringParameters ?? {},
+    );
+    const page = await transcriptionRepository.listTranscriptions(
+      claims.sub!,
+      query,
+    );
 
-    const response = listTranscriptionsResponseSchema.parse({ data });
+    const response = listTranscriptionsResponseSchema.parse(page);
 
     return {
       body: JSON.stringify(response),

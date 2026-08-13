@@ -40,8 +40,14 @@ export const createTranscriptionResponseSchema = z.object({
   transcription: transcriptionSchema,
 });
 
+export const listTranscriptionsQuerySchema = z.object({
+  cursor: z.string().min(1).optional(),
+  limit: z.coerce.number().int().min(1).max(10).default(10),
+});
+
 export const listTranscriptionsResponseSchema = z.object({
   data: z.array(transcriptionSchema),
+  nextCursor: z.string().nullable(),
 });
 
 export const transcriptionIdParamsSchema = z.object({
@@ -75,6 +81,10 @@ export type CreateTranscriptionRequestDto = z.infer<
 >;
 export type CreateTranscriptionResponseDto = z.infer<
   typeof createTranscriptionResponseSchema
+>;
+
+export type ListTranscriptionsQueryDto = z.infer<
+  typeof listTranscriptionsQuerySchema
 >;
 
 export type ListTranscriptionsResponseDto = z.infer<

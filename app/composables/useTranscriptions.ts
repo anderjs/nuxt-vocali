@@ -1,18 +1,20 @@
 import { useAuthStore } from "~/stores/auth";
 import { listTranscriptions } from "~/services/transcriptions.service";
+import { TRANSCRIPTIONS_PAGE_SIZE } from "~/utils/constants";
 import { EMPTY_TRANSCRIPTION_PAGE } from "~/utils/transcriptions";
 
 export function useTranscriptions() {
   const api = useApi();
-  const authStore = useAuthStore();
 
-  const loading = ref(true);
+  const authStore = useAuthStore();
 
   const error = ref(false);
 
+  const loading = ref(true);
+
   const transcriptions = ref(EMPTY_TRANSCRIPTION_PAGE);
 
-  async function loadTranscriptions(): Promise<void> {
+  async function loadTranscriptions(cursor?: string): Promise<void> {
     loading.value = true;
 
     error.value = false;
@@ -25,7 +27,10 @@ export function useTranscriptions() {
         return;
       }
 
-      transcriptions.value = await listTranscriptions(api);
+      transcriptions.value = await listTranscriptions(api, {
+        cursor,
+        limit: TRANSCRIPTIONS_PAGE_SIZE,
+      });
     } catch {
       transcriptions.value = EMPTY_TRANSCRIPTION_PAGE;
       error.value = true;
@@ -42,6 +47,7 @@ export function useTranscriptions() {
     error,
     loading,
     transcriptions,
-    refresh: loadTranscriptions,
+    next: loadTranscriptions,
+    refresh: () => loadTranscriptions(),
   };
 }

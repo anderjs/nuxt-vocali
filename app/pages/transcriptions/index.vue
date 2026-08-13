@@ -37,6 +37,7 @@
       v-else-if="transcriptions.items.length"
       :page="transcriptions"
       :page-size="TRANSCRIPTIONS_PAGE_SIZE"
+      @next="next"
     />
     <TranscriptionsEmptyState v-else />
 
@@ -54,7 +55,7 @@ import { TRANSCRIPTIONS_PAGE_SIZE } from "~/utils/constants";
 
 const newTranscriptionOpen = ref(false);
 
-const { error, loading, refresh, transcriptions } = useTranscriptions();
+const { error, loading, next, refresh, transcriptions } = useTranscriptions();
 
 function openNewTranscriptionModal(): void {
   newTranscriptionOpen.value = true;
