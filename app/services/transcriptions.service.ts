@@ -1,4 +1,4 @@
-import { API_PATH, API_QUERY_PARAM } from "~/utils/path";
+import { API_QUERY_PARAM } from "~/utils/path";
 import {
   EMPTY_TRANSCRIPTION_PAGE,
   mapApiTranscriptionToListItem,
@@ -16,7 +16,7 @@ export async function listTranscriptions(
   api: ApiClient,
   params: ListTranscriptionsParams,
 ): Promise<TranscriptionPage> {
-  const response = await api.request<unknown>(API_PATH.TRANSCRIPTIONS, {
+  const response = await api.request<unknown>("/transcriptions", {
     query: {
       [API_QUERY_PARAM.LIMIT]: params.limit,
       [API_QUERY_PARAM.CURSOR]: params.cursor,

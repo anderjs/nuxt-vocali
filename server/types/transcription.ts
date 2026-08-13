@@ -23,6 +23,7 @@ export const transcriptionSchema = z.object({
 export const createUploadUrlRequestSchema = z.object({
   fileName: z.string().min(1),
   contentType: z.string().min(1),
+  fileSize: z.number().int().positive().max(20 * 1024 * 1024),
 });
 
 export const createUploadUrlResponseSchema = z.object({
