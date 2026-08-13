@@ -1,13 +1,10 @@
-import { config } from "../config";
 import type { APIGatewayProxyHandlerV2 } from "aws-lambda";
 
 export const handler: APIGatewayProxyHandlerV2 = async () => {
   return {
-    statusCode: 200,
+    statusCode: 501,
     body: JSON.stringify({
-      ok: true,
-      service: "vocali-api",
-      environment: config.appEnv,
+      message: "Not implemented",
     }),
   };
 };
