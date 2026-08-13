@@ -9,16 +9,16 @@
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
     "typecheck:lambda": "tsc -p server/tsconfig.json --noEmit",
-    "build:lambdas": "esbuild server/handlers/*.ts --platform=node --target=node20 --bundle --format=cjs --outdir=server/dist --outbase=server/handlers"
+    "build:lambdas": "esbuild server/handlers/*.ts --platform=node --target=node20 --bundle --format=cjs --outdir=server/dist --outbase=server/handlers",
+    "typecheck": "nuxt typecheck"
   },
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.1104.0",
     "@aws-sdk/lib-dynamodb": "^3.1104.0",
     "@nuxt/ui": "^4.10.0",
     "@pinia/nuxt": "^1.0.1",
-    "animate.css": "^4.1.1",
+    "aws-amplify": "^6.20.0",
     "nuxt": "^4.5.2",
-    "oidc-client-ts": "^3.5.0",
     "pinia": "^4.0.2",
     "vue": "^3.5.40",
     "vue-router": "^5.2.0",
@@ -31,6 +31,8 @@
     "@types/node": "^20.19.8",
     "dotenv": "^17.4.2",
     "esbuild": "^0.28.1",
-    "tailwindcss": "^4.3.3"
+    "tailwindcss": "^4.3.3",
+    "typescript": "~5.9.3",
+    "vue-tsc": "^3.3.9"
   }
 }
