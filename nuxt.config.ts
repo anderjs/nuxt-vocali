@@ -45,7 +45,7 @@ export default defineNuxtConfig({
       cognitoScope:
         process.env.NUXT_PUBLIC_COGNITO_SCOPE ??
         process.env.COGNITO_SCOPE ??
-        "openid email profile",
+        "openid email profile aws.cognito.signin.user.admin",
     },
   },
   vite: {

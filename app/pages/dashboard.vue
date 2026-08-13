@@ -1,9 +1,11 @@
 <template>
-  <main class="flex min-h-dvh items-center justify-center bg-background px-4">
-    <p class="text-xl font-semibold text-foreground">Hello World</p>
-  </main>
+  <h1 class="text-xl font-semibold text-foreground">Hello World</h1>
 </template>
 
 <script setup lang="ts">
-definePageMeta({ middleware: "auth" });
+definePageMeta({
+  title: "Dashboard",
+  layout: "dashboard",
+  middleware: "auth",
+});
 </script>
