@@ -2,7 +2,7 @@ import {
   signIn as cognitoSignIn,
   signOut,
   getCurrentUser,
-  fetchUserAttributes,
+  fetchAuthSession,
   signInWithRedirect,
 } from "aws-amplify/auth";
 import { defineStore } from "pinia";
@@ -30,14 +30,14 @@ export const useAuthStore = defineStore("authStore", () => {
       loading.value = true;
 
       try {
-        const [currentUser, attributes] = await Promise.all([
+        const [currentUser, session] = await Promise.all([
           getCurrentUser(),
-          fetchUserAttributes(),
+          fetchAuthSession(),
         ]);
 
         user.value = authUserSchema.parse({
           id: currentUser.userId,
-          email: attributes.email,
+          email: session.tokens?.idToken?.payload.email,
           username: currentUser.username,
         });
       } catch {

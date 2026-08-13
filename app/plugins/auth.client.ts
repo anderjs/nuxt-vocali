@@ -2,6 +2,7 @@ import "aws-amplify/auth/enable-oauth-listener";
 import { Amplify } from "aws-amplify";
 import { Hub } from "aws-amplify/utils";
 import { useAuthStore } from "~/stores/auth";
+import { isOAuthCallbackUrl } from "~/utils/query";
 
 const OAUTH_CALLBACK_TIMEOUT_MS = 20_000;
 
@@ -10,10 +11,10 @@ export default defineNuxtPlugin(async () => {
 
   const authStore = useAuthStore();
 
-  const isOAuthCallback =
-    window.location.pathname ===
-      new URL(config.public.cognitoRedirectUri).pathname &&
-    new URLSearchParams(window.location.search).has("code");
+  const isOAuthCallback = isOAuthCallbackUrl(
+    window.location,
+    config.public.cognitoRedirectUri,
+  );
 
   let resolveOAuthCallback: (() => void) | undefined;
   const oauthCallback = isOAuthCallback
