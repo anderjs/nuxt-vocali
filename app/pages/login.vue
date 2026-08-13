@@ -21,6 +21,7 @@ import LoginFormCard from "~/components/auth/LoginFormCard.vue";
 import LoginBrandPanel from "~/components/auth/LoginBrandPanel.vue";
 import type { LoginSchema } from "~/schemas/login.schema";
 import { useAuthStore } from "~/stores/auth";
+import { PATH } from "~/utils/path";
 
 const authStore = useAuthStore();
 const loginError = ref<string>();
@@ -32,7 +33,7 @@ const handleLogin = async ({ email, password }: LoginSchema) => {
 
   try {
     await authStore.signIn(email, password);
-    await navigateTo("/dashboard");
+    await navigateTo(PATH.DASHBOARD);
   } catch {
     loginError.value =
       "No pudimos iniciar sesión. Revisa tus datos e inténtalo de nuevo.";

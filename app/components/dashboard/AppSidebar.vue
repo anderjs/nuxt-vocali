@@ -2,7 +2,7 @@
   <div class="flex h-full flex-col bg-background">
     <div class="flex h-16 shrink-0 items-center border-b border-border px-5">
       <NuxtLink
-        to="/transcriptions"
+        :to="PATH.TRANSCRIPTIONS"
         aria-label="Ir al inicio de Vocali"
         @click="handleNavigate"
       >
@@ -17,11 +17,7 @@
         variant="link"
         :items="navigationItems"
         class="w-full"
-        :ui="{
-          root: 'gap-1',
-          link: 'h-11 gap-2.5 rounded-lg px-3 text-sm transition-colors',
-          linkLeadingIcon: 'size-4.5 transition-colors',
-        }"
+:ui="sidebarNavigationMenuUi"
       />
     </nav>
 
@@ -44,21 +40,16 @@ import type { NavigationMenuItem } from "@nuxt/ui";
 import type { NavigationEmit } from "~/common/types";
 import AuthLogo from "~/components/auth/AuthLogo.vue";
 import { useAuthStore } from "~/stores/auth";
+import {
+  getSidebarNavigationItemUi,
+  sidebarNavigationMenuUi,
+} from "~/utils/navigation-menu";
+import { PATH } from "~/utils/path";
 
 const emit = defineEmits<NavigationEmit>();
 
 const route = useRoute();
 const authStore = useAuthStore();
-
-const activeItemUi: NavigationMenuItem["ui"] = {
-  link: "bg-surface-purple-subtle text-primary hover:bg-surface-purple-subtle hover:text-primary",
-  linkLeadingIcon: "text-primary group-hover:text-primary",
-};
-
-const inactiveItemUi: NavigationMenuItem["ui"] = {
-  link: "text-text-secondary hover:bg-surface-purple-subtle/70 hover:text-foreground",
-  linkLeadingIcon: "text-text-muted group-hover:text-text-secondary",
-};
 
 function handleNavigate(): void {
   emit("navigate");
@@ -72,9 +63,9 @@ const navigationItems = computed<NavigationMenuItem[]>(() => [
   {
     label: "Transcripciones",
     icon: "i-lucide-file-audio",
-    to: "/transcriptions",
-    active: route.path === "/transcriptions",
-    ui: route.path === "/transcriptions" ? activeItemUi : inactiveItemUi,
+    to: PATH.TRANSCRIPTIONS,
+    active: route.path === PATH.TRANSCRIPTIONS,
+    ui: getSidebarNavigationItemUi(route.path === PATH.TRANSCRIPTIONS),
     onSelect: handleNavigate,
   },
 ]);

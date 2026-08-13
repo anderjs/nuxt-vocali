@@ -1,0 +1,2 @@
+export const OAUTH_CALLBACK_TIMEOUT_MS = 20_000;
+export const TRANSCRIPTIONS_PAGE_SIZE = 10;

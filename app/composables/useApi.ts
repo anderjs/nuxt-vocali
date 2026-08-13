@@ -1,4 +1,6 @@
+import type { UnauthorizedErrorCandidate } from "~/common/types";
 import { getAccessToken } from "~/utils/auth-session";
+import { PATH } from "~/utils/path";
 import { useAuthStore } from "~/stores/auth";
 
 type ApiFetchRequest = Parameters<typeof $fetch>[0];
@@ -9,11 +11,7 @@ function isUnauthorized(error: unknown): boolean {
     return false;
   }
 
-  const candidate = error as {
-    status?: number;
-    statusCode?: number;
-    response?: { status?: number };
-  };
+  const candidate = error as UnauthorizedErrorCandidate;
 
   return (
     candidate.status === 401 ||
@@ -60,7 +58,7 @@ export function useApi() {
     } catch (error) {
       if (isUnauthorized(error)) {
         authStore.clearSession();
-        await navigateTo("/login");
+        await navigateTo(PATH.LOGIN);
       }
 
       throw error;

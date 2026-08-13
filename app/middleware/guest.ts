@@ -1,4 +1,5 @@
 import { useAuthStore } from "~/stores/auth";
+import { PATH } from "~/utils/path";
 
 export default defineNuxtRouteMiddleware(async () => {
   if (import.meta.server) {
@@ -9,6 +10,6 @@ export default defineNuxtRouteMiddleware(async () => {
   await authStore.initialize();
 
   if (authStore.isAuthenticated) {
-    return navigateTo("/dashboard");
+    return navigateTo(PATH.DASHBOARD);
   }
 });

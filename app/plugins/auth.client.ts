@@ -2,9 +2,8 @@ import "aws-amplify/auth/enable-oauth-listener";
 import { Amplify } from "aws-amplify";
 import { Hub } from "aws-amplify/utils";
 import { useAuthStore } from "~/stores/auth";
+import { OAUTH_CALLBACK_TIMEOUT_MS } from "~/utils/constants";
 import { isOAuthCallbackUrl } from "~/utils/query";
-
-const OAUTH_CALLBACK_TIMEOUT_MS = 20_000;
 
 export default defineNuxtPlugin(async () => {
   const config = useRuntimeConfig();

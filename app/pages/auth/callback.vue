@@ -15,7 +15,7 @@
           </p>
         </div>
 
-        <UButton to="/login" block color="primary">
+        <UButton :to="PATH.LOGIN" block color="primary">
           Volver a iniciar sesión
         </UButton>
       </div>
@@ -32,6 +32,7 @@
 
 <script setup lang="ts">
 import { useAuthStore } from "~/stores/auth";
+import { PATH } from "~/utils/path";
 import { getQueryValue } from "#imports";
 
 const route = useRoute();
@@ -65,6 +66,6 @@ onMounted(async () => {
     return;
   }
 
-  await navigateTo(authStore.isAuthenticated ? "/dashboard" : "/login");
+  await navigateTo(authStore.isAuthenticated ? PATH.DASHBOARD : PATH.LOGIN);
 });
 </script>

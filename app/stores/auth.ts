@@ -8,6 +8,7 @@ import {
 import { defineStore } from "pinia";
 import { computed, ref } from "vue";
 import { authUserSchema, type AuthUser } from "~/schemas/auth.schema";
+import { PATH } from "~/utils/path";
 
 export const useAuthStore = defineStore("authStore", () => {
   const user = ref<AuthUser | null>(null);
@@ -88,7 +89,7 @@ export const useAuthStore = defineStore("authStore", () => {
     } finally {
       clearSession();
 
-      await navigateTo("/login");
+      await navigateTo(PATH.LOGIN);
     }
   }
 

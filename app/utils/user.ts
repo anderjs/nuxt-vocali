@@ -1,16 +1,17 @@
-export function getIdentityLabel(user?: {
-  email?: string;
-  username?: string;
-} | null): string {
+import type { AuthIdentityUser } from "~/common/types";
+
+export function getIdentityLabel(
+  user?: AuthIdentityUser | null,
+): string {
   return user?.email ?? user?.username ?? "Usuario";
 }
 
+/**
+ * @description
+ * Get initials from text.
+ */
 export function getInitials(value: string): string {
-  const normalizedValue = value.trim();
-
-  if (!normalizedValue) {
-    return "U";
-  }
+  const normalizedValue = value?.trim();
 
   if (normalizedValue.includes("@")) {
     return normalizedValue.charAt(0).toUpperCase();

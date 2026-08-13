@@ -35,6 +35,7 @@ import NewTranscriptionModal from "~/components/transcriptions/NewTranscriptionM
 import NewTranscriptionButton from "~/components/transcriptions/NewTranscriptionButton.vue";
 import TranscriptionsEmptyState from "~/components/transcriptions/TranscriptionsEmptyState.vue";
 import type { TranscriptionPage } from "~/types/transcription";
+import { TRANSCRIPTIONS_PAGE_SIZE } from "~/utils/constants";
 
 const newTranscriptionOpen = ref(false);
 
