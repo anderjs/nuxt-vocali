@@ -7,11 +7,6 @@ export const PATH = {
 
 export type AppPath = (typeof PATH)[keyof typeof PATH];
 
-export const API_PATH = {
-  TRANSCRIPTIONS: "/transcriptions",
-} as const;
-
-export type ApiPath = (typeof API_PATH)[keyof typeof API_PATH];
 
 export enum API_QUERY_PARAM {
   LIMIT = "limit",

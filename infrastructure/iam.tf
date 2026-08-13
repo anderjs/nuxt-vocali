@@ -45,3 +45,23 @@ resource "aws_iam_role_policy" "lambda_dynamodb_access" {
   role   = aws_iam_role.lambda_execution_role.id
   policy = data.aws_iam_policy_document.lambda_dynamodb_access.json
 }
+
+data "aws_iam_policy_document" "lambda_s3_access" {
+  statement {
+    effect = "Allow"
+
+    actions = [
+      "s3:PutObject",
+    ]
+
+    resources = [
+      "${aws_s3_bucket.app_bucket.arn}/uploads/*",
+    ]
+  }
+}
+
+resource "aws_iam_role_policy" "lambda_s3_access" {
+  name   = "vocali-lambda-s3-access"
+  role   = aws_iam_role.lambda_execution_role.id
+  policy = data.aws_iam_policy_document.lambda_s3_access.json
+}

@@ -91,3 +91,15 @@ resource "aws_dynamodb_table" "app_table" {
     Environment = "dev"
   }
 }
+
+resource "aws_s3_bucket_cors_configuration" "app_bucket_cors" {
+  bucket = aws_s3_bucket.app_bucket.id
+
+  cors_rule {
+    allowed_headers = ["*"]
+    allowed_methods = ["PUT"]
+    allowed_origins = var.api_cors_allowed_origins
+    expose_headers  = ["ETag"]
+    max_age_seconds = 300
+  }
+}
