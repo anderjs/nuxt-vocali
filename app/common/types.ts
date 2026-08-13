@@ -1,6 +1,13 @@
 import type { NavigationMenuItem } from "@nuxt/ui";
 import type { AuthUser } from "~/schemas/auth.schema";
 
+export type ApiFetchRequest = Parameters<typeof $fetch>[0];
+export type ApiFetchOptions = Parameters<typeof $fetch>[1];
+
+export interface ApiClient {
+  request<T>(path: ApiFetchRequest, options?: ApiFetchOptions): Promise<T>;
+}
+
 export type ClickEmit = {
   click: [];
 };

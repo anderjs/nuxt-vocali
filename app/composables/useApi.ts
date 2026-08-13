@@ -1,28 +1,14 @@
 import { PATH } from "~/utils/path";
 import { useAuthStore } from "~/stores/auth";
 import { getAccessToken } from "~/utils/auth-session";
-import type { UnauthorizedErrorCandidate } from "~/common/types";
-
-type ApiFetchRequest = Parameters<typeof $fetch>[0];
-type ApiFetchOptions = Parameters<typeof $fetch>[1];
-
-export interface ApiClient {
-  request<T>(path: ApiFetchRequest, options?: ApiFetchOptions): Promise<T>;
-}
-
-function isUnauthorized(error: unknown): boolean {
-  if (!error || typeof error !== "object") {
-    return false;
-  }
-
-  const candidate = error as UnauthorizedErrorCandidate;
-
-  return (
-    candidate.status === 401 ||
-    candidate.statusCode === 401 ||
-    candidate.response?.status === 401
-  );
-}
+import {
+  HttpHeader,
+  hasHttpStatus,
+  HttpStatusCode,
+  HttpStatusMessage,
+  getBearerAuthorizationHeader,
+} from "~/utils/http";
+import type { ApiFetchOptions, ApiFetchRequest } from "~/common/types";
 
 export function useApi() {
   const config = useRuntimeConfig();
@@ -39,13 +25,16 @@ export function useApi() {
       if (!accessToken) {
         throw createError({
           statusCode: HttpStatusCode.UNAUTHORIZED,
-          statusMessage: "Unauthorized",
+          statusMessage: HttpStatusMessage.UNAUTHORIZED,
         });
       }
 
       const headers = new Headers(options.headers);
 
-      headers.set("Authorization", `Bearer ${accessToken}`);
+      headers.set(
+        HttpHeader.AUTHORIZATION,
+        getBearerAuthorizationHeader(accessToken),
+      );
 
       return await $fetch<T>(path, {
         ...options,
@@ -57,7 +46,7 @@ export function useApi() {
     try {
       return await execute();
     } catch (error) {
-      if (!isUnauthorized(error)) {
+      if (!hasHttpStatus(error, HttpStatusCode.UNAUTHORIZED)) {
         throw error;
       }
     }
@@ -65,7 +54,7 @@ export function useApi() {
     try {
       return await execute(true);
     } catch (error) {
-      if (isUnauthorized(error)) {
+      if (hasHttpStatus(error, HttpStatusCode.UNAUTHORIZED)) {
         authStore.clearSession();
         await navigateTo(PATH.LOGIN);
       }

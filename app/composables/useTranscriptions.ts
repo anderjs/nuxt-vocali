@@ -1,8 +1,10 @@
+import { useAuthStore } from "~/stores/auth";
 import { listTranscriptions } from "~/services/transcriptions.service";
 import { EMPTY_TRANSCRIPTION_PAGE } from "~/utils/transcriptions";
 
 export function useTranscriptions() {
   const api = useApi();
+  const authStore = useAuthStore();
 
   const loading = ref(true);
 
@@ -16,6 +18,13 @@ export function useTranscriptions() {
     error.value = false;
 
     try {
+      await authStore.initialize();
+
+      if (!authStore.isAuthenticated) {
+        transcriptions.value = EMPTY_TRANSCRIPTION_PAGE;
+        return;
+      }
+
       transcriptions.value = await listTranscriptions(api);
     } catch {
       transcriptions.value = EMPTY_TRANSCRIPTION_PAGE;
