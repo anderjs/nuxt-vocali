@@ -37,3 +37,39 @@ output "api_cognito_authorizer_id" {
   description = "Cognito JWT authorizer ID"
   value       = aws_apigatewayv2_authorizer.cognito_jwt.id
 }
+
+
+output "cognito_user_pool_id" {
+  description = "Existing Cognito User Pool ID used by the application"
+  value       = data.aws_cognito_user_pool.app_pool.id
+}
+
+output "cognito_user_pool_client_id" {
+  description = "Cognito User Pool App Client ID used by the application"
+  value       = aws_cognito_user_pool_client.app_client.id
+}
+
+output "cognito_issuer" {
+  description = "OIDC issuer URL for the Cognito User Pool"
+  value       = local.cognito_issuer
+}
+
+output "cognito_managed_login_domain" {
+  description = "Cognito managed-login domain"
+  value       = "https://${aws_cognito_user_pool_domain.managed_login.domain}.auth.${var.aws_region}.amazoncognito.com"
+}
+
+output "cognito_oauth_callback_urls" {
+  description = "Configured Cognito OAuth callback URLs"
+  value       = aws_cognito_user_pool_client.app_client.callback_urls
+}
+
+output "cognito_oauth_logout_urls" {
+  description = "Configured Cognito OAuth logout URLs"
+  value       = aws_cognito_user_pool_client.app_client.logout_urls
+}
+
+output "google_oauth_authorized_redirect_uri" {
+  description = "Redirect URI that must be configured in Google Cloud Console for Cognito federation"
+  value       = "https://${aws_cognito_user_pool_domain.managed_login.domain}.auth.${var.aws_region}.amazoncognito.com/oauth2/idpresponse"
+}

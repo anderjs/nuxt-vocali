@@ -32,16 +32,12 @@ locals {
     }
   }
 
-  cognito_user_pool_client_id = data.aws_cognito_user_pool_clients.app_clients.client_ids[0]
+  cognito_user_pool_client_id = aws_cognito_user_pool_client.app_client.id
   cognito_issuer              = "https://cognito-idp.${var.aws_region}.amazonaws.com/${data.aws_cognito_user_pool.app_pool.id}"
 }
 
 data "aws_cognito_user_pool" "app_pool" {
   user_pool_id = var.cognito_user_pool_id
-}
-
-data "aws_cognito_user_pool_clients" "app_clients" {
-  user_pool_id = data.aws_cognito_user_pool.app_pool.id
 }
 
 resource "aws_apigatewayv2_api" "http_api" {

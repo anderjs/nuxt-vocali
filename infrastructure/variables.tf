@@ -26,6 +26,71 @@ variable "cognito_user_pool_id" {
   }
 }
 
+
+variable "cognito_user_pool_client_id" {
+  description = "Existing Cognito User Pool App Client ID to import/manage for Hosted UI OAuth settings"
+  type        = string
+
+  validation {
+    condition     = length(trimspace(var.cognito_user_pool_client_id)) > 0
+    error_message = "cognito_user_pool_client_id must not be empty."
+  }
+}
+
+variable "cognito_user_pool_client_name" {
+  description = "Name of the existing Cognito User Pool App Client. Must match the imported client to avoid renaming it."
+  type        = string
+}
+
+variable "cognito_domain_prefix" {
+  description = "Globally unique Cognito managed-login domain prefix"
+  type        = string
+
+  validation {
+    condition     = can(regex("^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$", var.cognito_domain_prefix))
+    error_message = "cognito_domain_prefix must be a valid Cognito domain prefix using lowercase letters, numbers, and hyphens."
+  }
+}
+
+variable "cognito_callback_urls" {
+  description = "Allowed OAuth callback URLs for the Cognito App Client"
+  type        = list(string)
+  default     = ["http://localhost:3000/auth/callback"]
+}
+
+variable "cognito_logout_urls" {
+  description = "Allowed logout redirect URLs for the Cognito App Client"
+  type        = list(string)
+  default     = ["http://localhost:3000/login"]
+}
+
+variable "google_client_id" {
+  description = "Google OAuth client ID used by Cognito federation"
+  type        = string
+}
+
+variable "google_client_secret" {
+  description = "Google OAuth client secret used by Cognito federation"
+  type        = string
+  sensitive   = true
+}
+
+variable "google_attribute_mapping" {
+  description = "Mapping from Cognito attributes to Google OAuth/OIDC claims"
+  type        = map(string)
+  default = {
+    email       = "email"
+    username    = "sub"
+    name        = "name"
+    family_name = "family_name"
+    middle_name = "given_name"
+    picture     = "picture"
+    profile     = "picture"
+    gender      = "sub"
+    updated_at  = "updated_at"
+  }
+}
+
 variable "api_lambda_runtime" {
   description = "Lambda runtime for HTTP API handlers"
   type        = string
