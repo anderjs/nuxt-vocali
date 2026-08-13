@@ -1,7 +1,8 @@
 locals {
   cognito_callback_urls = distinct(var.cognito_callback_urls)
   cognito_logout_urls   = distinct(var.cognito_logout_urls)
-  cognito_oauth_scopes  = ["openid", "email", "profile"]
+  google_oauth_scopes   = ["openid", "email", "profile"]
+  cognito_oauth_scopes  = concat(local.google_oauth_scopes, ["aws.cognito.signin.user.admin"])
 }
 
 import {
@@ -32,7 +33,7 @@ resource "aws_cognito_identity_provider" "google" {
   provider_details = {
     client_id                     = var.google_client_id
     client_secret                 = var.google_client_secret
-    authorize_scopes              = join(" ", local.cognito_oauth_scopes)
+    authorize_scopes              = join(" ", local.google_oauth_scopes)
     authorize_url                 = "https://accounts.google.com/o/oauth2/v2/auth"
     token_url                     = "https://www.googleapis.com/oauth2/v4/token"
     token_request_method          = "POST"

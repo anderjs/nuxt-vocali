@@ -87,7 +87,7 @@ variable "google_attribute_mapping" {
     picture     = "picture"
     profile     = "picture"
     gender      = "sub"
-    updated_at  = "updated_at"
+    updated_at  = "iat"
   }
 }
 
