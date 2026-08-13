@@ -1,5 +1,5 @@
 <template>
-  <div class="flex min-h-dvh bg-surface-purple-subtle">
+  <div class="flex min-h-dvh bg-surface-purple-subtle/50">
     <aside
       class="fixed inset-y-0 left-0 hidden w-64 border-r border-border md:block"
     >
@@ -19,10 +19,7 @@
     </USlideover>
 
     <div class="flex min-h-dvh min-w-0 flex-1 flex-col md:pl-64">
-      <AppHeader
-        :title="pageTitle"
-        @open-navigation="mobileNavigationOpen = true"
-      />
+      <AppHeader @open-navigation="mobileNavigationOpen = true" />
 
       <main class="flex-1 p-6 md:p-8">
         <slot />
@@ -32,10 +29,8 @@
 </template>
 
 <script setup lang="ts">
-const route = useRoute();
-const mobileNavigationOpen = ref(false);
+import AppHeader from "~/components/dashboard/AppHeader.vue";
+import AppSidebar from "~/components/dashboard/AppSidebar.vue";
 
-const pageTitle = computed(() =>
-  typeof route.meta.title === "string" ? route.meta.title : "Vocali",
-);
+const mobileNavigationOpen = ref(false);
 </script>

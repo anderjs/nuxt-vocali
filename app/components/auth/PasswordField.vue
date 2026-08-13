@@ -28,7 +28,7 @@
           :icon="showPassword ? 'i-lucide-eye-off' : 'i-lucide-eye'"
           :aria-label="showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'"
           :aria-pressed="showPassword"
-          @click="showPassword = !showPassword"
+          @click="togglePasswordVisibility"
         />
       </template>
     </UInput>
@@ -40,4 +40,8 @@ import { authFormFieldUi, authPasswordInputUi } from "./form-ui";
 
 const password = defineModel<string>({ required: true });
 const showPassword = ref(false);
+
+function togglePasswordVisibility(): void {
+  showPassword.value = !showPassword.value;
+}
 </script>

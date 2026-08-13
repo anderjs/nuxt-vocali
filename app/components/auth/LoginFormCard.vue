@@ -81,7 +81,7 @@
         color="neutral"
         variant="outline"
         class="h-12 cursor-pointer rounded-xl border-border bg-background font-semibold text-foreground shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/30 hover:bg-surface-purple-subtle hover:shadow-md focus-visible:outline-primary active:translate-y-0"
-        @click="emit('googleSignIn')"
+        @click="handleGoogleSignIn"
       >
         <span class="grid w-full grid-cols-[1fr_auto_1fr] items-center">
           <span aria-hidden="true" />
@@ -103,21 +103,17 @@
 
 <script setup lang="ts">
 import type { FormSubmitEvent } from "@nuxt/ui";
+import type { LoginFormCardEmit } from "~/common/types";
 import AuthLogo from "./AuthLogo.vue";
 import PasswordField from "./PasswordField.vue";
 import { authFormFieldUi, authInputUi } from "./form-ui";
 import { loginSchema, type LoginSchema } from "~/schemas/login.schema";
 
-type Emit = {
-  submit: [credentials: LoginSchema];
-  googleSignIn: [];
-};
-
 defineProps<{
   errorMessage?: string;
 }>();
 
-const emit = defineEmits<Emit>();
+const emit = defineEmits<LoginFormCardEmit<LoginSchema>>();
 
 const cardUi = {
   body: "p-7 sm:p-9",
@@ -130,5 +126,9 @@ const form = reactive<LoginSchema>({
 
 function handleSubmit(event: FormSubmitEvent<LoginSchema>): void {
   emit("submit", event.data);
+}
+
+function handleGoogleSignIn(): void {
+  emit("googleSignIn");
 }
 </script>
