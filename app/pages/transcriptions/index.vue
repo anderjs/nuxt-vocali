@@ -18,10 +18,25 @@
       />
     </div>
 
+    <div
+      v-if="loading"
+      class="flex min-h-96 items-center justify-center rounded-xl border border-border bg-background px-6 py-14 text-center"
+    >
+      <div class="space-y-3">
+        <UIcon
+          name="i-lucide-loader-circle"
+          class="mx-auto size-6 animate-spin text-primary"
+        />
+        <p class="text-sm text-text-secondary">Cargando transcripciones...</p>
+      </div>
+    </div>
+
+    <TranscriptionsErrorState v-else-if="error" @click="refresh" />
+
     <TranscriptionsTable
-      v-if="transcriptionPage.items.length"
-      :page="transcriptionPage"
-      :page-size="10"
+      v-else-if="transcriptions.items.length"
+      :page="transcriptions"
+      :page-size="TRANSCRIPTIONS_PAGE_SIZE"
     />
     <TranscriptionsEmptyState v-else />
 
@@ -34,15 +49,12 @@ import TranscriptionsTable from "~/components/transcriptions/TranscriptionsTable
 import NewTranscriptionModal from "~/components/transcriptions/NewTranscriptionModal.vue";
 import NewTranscriptionButton from "~/components/transcriptions/NewTranscriptionButton.vue";
 import TranscriptionsEmptyState from "~/components/transcriptions/TranscriptionsEmptyState.vue";
-import type { TranscriptionPage } from "~/types/transcription";
+import TranscriptionsErrorState from "~/components/transcriptions/TranscriptionsErrorState.vue";
 import { TRANSCRIPTIONS_PAGE_SIZE } from "~/utils/constants";
 
 const newTranscriptionOpen = ref(false);
 
-const transcriptionPage: TranscriptionPage = {
-  items: [],
-  nextCursor: null,
-};
+const { error, loading, refresh, transcriptions } = useTranscriptions();
 
 function openNewTranscriptionModal(): void {
   newTranscriptionOpen.value = true;

@@ -1,10 +1,14 @@
-import type { UnauthorizedErrorCandidate } from "~/common/types";
-import { getAccessToken } from "~/utils/auth-session";
 import { PATH } from "~/utils/path";
 import { useAuthStore } from "~/stores/auth";
+import { getAccessToken } from "~/utils/auth-session";
+import type { UnauthorizedErrorCandidate } from "~/common/types";
 
 type ApiFetchRequest = Parameters<typeof $fetch>[0];
 type ApiFetchOptions = Parameters<typeof $fetch>[1];
+
+export interface ApiClient {
+  request<T>(path: ApiFetchRequest, options?: ApiFetchOptions): Promise<T>;
+}
 
 function isUnauthorized(error: unknown): boolean {
   if (!error || typeof error !== "object") {
@@ -22,6 +26,7 @@ function isUnauthorized(error: unknown): boolean {
 
 export function useApi() {
   const config = useRuntimeConfig();
+
   const authStore = useAuthStore();
 
   async function request<T>(
@@ -32,10 +37,14 @@ export function useApi() {
       const accessToken = await getAccessToken(forceRefresh);
 
       if (!accessToken) {
-        throw createError({ statusCode: 401, statusMessage: "Unauthorized" });
+        throw createError({
+          statusCode: HttpStatusCode.UNAUTHORIZED,
+          statusMessage: "Unauthorized",
+        });
       }
 
       const headers = new Headers(options.headers);
+
       headers.set("Authorization", `Bearer ${accessToken}`);
 
       return await $fetch<T>(path, {
