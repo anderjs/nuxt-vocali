@@ -43,6 +43,14 @@ data "aws_cognito_user_pool" "app_pool" {
 resource "aws_apigatewayv2_api" "http_api" {
   name          = "vocali-http-api"
   protocol_type = "HTTP"
+
+  cors_configuration {
+    allow_credentials = false
+    allow_headers     = ["authorization", "content-type"]
+    allow_methods     = ["GET", "POST", "OPTIONS"]
+    allow_origins     = var.api_cors_allowed_origins
+    max_age           = 300
+  }
 }
 
 resource "aws_apigatewayv2_authorizer" "cognito_jwt" {
@@ -100,4 +108,11 @@ resource "aws_apigatewayv2_stage" "default" {
 resource "aws_cloudwatch_log_group" "api_access_logs" {
   name              = "/aws/apigateway/vocali-http-api"
   retention_in_days = var.api_log_retention_days
+}
+
+resource "aws_apigatewayv2_route" "cors_preflight" {
+  api_id             = aws_apigatewayv2_api.http_api.id
+  route_key          = "OPTIONS /{proxy+}"
+  authorization_type = "NONE"
+  target             = "integrations/${aws_apigatewayv2_integration.lambda["health"].id}"
 }

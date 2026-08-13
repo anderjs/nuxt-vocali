@@ -13,7 +13,7 @@ variable "bucket_name" {
 variable "dynamodb_table_name" {
   description = "Name of the DynamoDB table"
   type        = string
-  default     = "vocali-app-table"
+  default     = "transcriptions"
 }
 
 variable "cognito_user_pool_id" {
@@ -111,4 +111,14 @@ variable "api_log_retention_days" {
     condition     = var.api_log_retention_days > 0
     error_message = "api_log_retention_days must be greater than 0."
   }
+}
+
+
+variable "api_cors_allowed_origins" {
+  description = "Allowed browser origins for API Gateway CORS"
+  type        = list(string)
+  default = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+  ]
 }

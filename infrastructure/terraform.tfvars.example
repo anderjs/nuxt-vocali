@@ -1,7 +1,7 @@
 aws_region = "eu-north-1"
 
 bucket_name         = "vocali-s3"
-dynamodb_table_name = "vocali-app-table"
+dynamodb_table_name = "transcriptions"
 
 cognito_user_pool_id          = "eu-north-1_XXXXXXXXX"
 cognito_user_pool_client_id   = "existing-app-client-id"
@@ -20,3 +20,9 @@ google_client_id     = "your-google-oauth-client-id.apps.googleusercontent.com"
 google_client_secret = "never-commit-real-google-client-secret"
 
 api_lambda_runtime = "nodejs20.x"
+
+
+api_cors_allowed_origins = [
+  "http://localhost:3000",
+  "http://127.0.0.1:3000",
+]

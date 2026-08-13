@@ -11,6 +11,14 @@ resource "aws_lambda_function" "handlers" {
 
   publish = false
 
+  environment {
+    variables = {
+      APP_ENV             = "lambda"
+      DYNAMODB_TABLE_NAME = aws_dynamodb_table.app_table.name
+      S3_BUCKET_NAME      = aws_s3_bucket.app_bucket.bucket
+    }
+  }
+
   depends_on = [
     aws_iam_role_policy_attachment.lambda_basic_execution,
     data.archive_file.lambda_packages,
