@@ -13,7 +13,7 @@ export const useAuthStore = defineStore("authStore", () => {
   const user = ref<AuthUser | null>(null);
   const loading = ref(true);
   const initialized = ref(false);
-  const isAuthenticated = computed(() => user.value !== null);
+  const isAuthenticated = computed(() => Boolean(user.value));
 
   let initializationPromise: Promise<void> | null = null;
 
@@ -37,14 +37,14 @@ export const useAuthStore = defineStore("authStore", () => {
 
         user.value = authUserSchema.parse({
           id: currentUser.userId,
-          username: currentUser.username,
           email: attributes.email,
+          username: currentUser.username,
         });
       } catch {
         user.value = null;
       } finally {
-        initialized.value = true;
         loading.value = false;
+        initialized.value = true;
         initializationPromise = null;
       }
     })();
@@ -59,7 +59,9 @@ export const useAuthStore = defineStore("authStore", () => {
     });
 
     if (!result.isSignedIn) {
-      throw new Error(`Unsupported Cognito sign-in step: ${result.nextStep.signInStep}`);
+      throw new Error(
+        `Unsupported Cognito sign-in step: ${result.nextStep.signInStep}`,
+      );
     }
 
     await initialize(true);
@@ -85,19 +87,20 @@ export const useAuthStore = defineStore("authStore", () => {
       await signOut();
     } finally {
       clearSession();
+
       await navigateTo("/login");
     }
   }
 
   return {
     user,
-    loading,
-    initialized,
-    isAuthenticated,
-    initialize,
-    signIn,
-    signInWithGoogle,
-    clearSession,
     logout,
+    signIn,
+    loading,
+    initialize,
+    initialized,
+    clearSession,
+    isAuthenticated,
+    signInWithGoogle,
   };
 });

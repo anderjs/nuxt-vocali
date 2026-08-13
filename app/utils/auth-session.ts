@@ -1,7 +1,11 @@
 import { fetchAuthSession } from "aws-amplify/auth";
 
-export async function getAccessToken(forceRefresh = false): Promise<string | null> {
+export async function getAccessToken(
+  forceRefresh = false,
+): Promise<string | null> {
   const session = await fetchAuthSession({ forceRefresh });
 
-  return session.tokens?.accessToken?.toString() ?? null;
+  return session?.tokens?.accessToken
+    ? `${session?.tokens?.accessToken}`
+    : null;
 }
