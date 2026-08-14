@@ -17,17 +17,34 @@ export const TRANSCRIPTION_STATUS_MAP: Record<
   ApiTranscriptionStatus,
   TranscriptionStatus
 > = {
-  failed: "error",
+  failed: "failed",
   pending: "processing",
   completed: "completed",
   processing: "processing",
+};
+
+export const TRANSCRIPTION_TYPE_LABELS: Record<
+  TranscriptionListItem["type"],
+  string
+> = {
+  file: "Archivo",
+  realtime: "En vivo",
+};
+
+export const TRANSCRIPTION_STATUS_CONFIG: Record<
+  TranscriptionStatus,
+  { label: string; color: "success" | "warning" | "error" }
+> = {
+  completed: { label: "Completada", color: "success" },
+  processing: { label: "Procesando", color: "warning" },
+  failed: { label: "Error", color: "error" },
 };
 
 export function mapApiTranscriptionToListItem(
   transcription: ApiTranscription,
 ): TranscriptionListItem {
   return {
-    type: "file",
+    type: transcription.type,
     id: transcription.id,
     name: transcription.fileName,
     createdAt: transcription.createdAt,

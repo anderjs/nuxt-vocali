@@ -14,15 +14,11 @@
       }"
     >
       <template #type-cell="{ row }">
-        {{ typeLabels[row.original.type] }}
+        {{ TRANSCRIPTION_TYPE_LABELS[row.original.type] }}
       </template>
 
       <template #status-cell="{ row }">
-        <UBadge
-          :color="statusConfig[row.original.status].color"
-          variant="soft"
-          :label="statusConfig[row.original.status].label"
-        />
+        <TranscriptionStatusBadge :status="row.original.status" />
       </template>
 
       <template #createdAt-cell="{ row }">
@@ -42,10 +38,10 @@
               :disabled="row.original.status !== 'completed'"
               :class="
                 row.original.status === 'completed'
-                  ? 'cursor-pointer text-text-secondary hover:bg-surface-purple-subtle hover:text-foreground'
+                  ? 'cursor-pointer text-text-secondary transition-colors duration-200 hover:bg-surface-purple-subtle hover:text-foreground'
                   : 'cursor-not-allowed text-text-muted'
               "
-              @click.stop
+              @click.stop="handleDownloadClick(row.original.id)"
             />
           </UTooltip>
         </div>
@@ -75,11 +71,11 @@ import type { TranscriptionsTableEmit } from "~/common/types";
 import type {
   TranscriptionListItem,
   TranscriptionPage,
-  TranscriptionStatus,
-  TranscriptionType,
 } from "~/types/transcription";
+import TranscriptionStatusBadge from "~/components/transcriptions/TranscriptionStatusBadge.vue";
 import { formatShortDateEs } from "~/utils/date";
 import { getTranscriptionPath } from "~/utils/path";
+import { TRANSCRIPTION_TYPE_LABELS } from "~/utils/transcriptions";
 
 const props = defineProps<{
   page: TranscriptionPage;
@@ -94,20 +90,6 @@ const columns: TableColumn<TranscriptionListItem>[] = [
   { accessorKey: "createdAt", header: "Fecha" },
   { id: "actions", header: "Acciones", meta: { class: { th: "text-right" } } },
 ];
-
-const typeLabels: Record<TranscriptionType, string> = {
-  file: "Archivo",
-  realtime: "En vivo",
-};
-
-const statusConfig: Record<
-  TranscriptionStatus,
-  { label: string; color: "success" | "warning" | "error" }
-> = {
-  completed: { label: "Completada", color: "success" },
-  processing: { label: "Procesando", color: "warning" },
-  error: { label: "Error", color: "error" },
-};
 
 function handleRowSelect(
   _event: Event,
@@ -151,5 +133,9 @@ function handleNextClick(): void {
   if (props.page.nextCursor) {
     emit("next", props.page.nextCursor);
   }
+}
+
+function handleDownloadClick(id: string): void {
+  emit("download", id);
 }
 </script>

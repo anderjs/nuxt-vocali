@@ -1,5 +1,5 @@
 export type TranscriptionType = "file" | "realtime";
-export type TranscriptionStatus = "completed" | "processing" | "error";
+export type TranscriptionStatus = "completed" | "processing" | "failed";
 
 export interface TranscriptionListItem {
   id: string;
