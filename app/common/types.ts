@@ -17,6 +17,11 @@ export type LoginFormCardEmit<TCredentials> = {
   googleSignIn: [];
 };
 
+export type SignUpFormCardEmit<TCredentials, TConfirmation> = {
+  submit: [credentials: TCredentials];
+  confirm: [confirmation: TConfirmation];
+};
+
 export type NavigationEmit = {
   navigate: [];
 };
@@ -49,3 +54,32 @@ export type UnauthorizedErrorCandidate = {
 };
 
 export type SidebarNavigationItemUi = NonNullable<NavigationMenuItem["ui"]>;
+
+export interface CognitoSignUpProfile {
+  email: string;
+  fullName: string;
+}
+
+export interface CognitoNameParts {
+  familyName: string;
+  formattedName: string;
+  middleName: string;
+}
+
+export interface CognitoRequiredSignUpAttributes {
+  [attribute: string]: string;
+
+  email: string;
+  family_name: string;
+  gender: string;
+  middle_name: string;
+  name: string;
+  picture: string;
+  profile: string;
+  updated_at: string;
+}
+
+export interface PcmAudioCapture {
+  inputSource: MediaStreamAudioSourceNode;
+  workletNode: AudioWorkletNode;
+}

@@ -1,5 +1,7 @@
 import {
   signIn as cognitoSignIn,
+  signUp as cognitoSignUp,
+  confirmSignUp as cognitoConfirmSignUp,
   signOut,
   getCurrentUser,
   fetchAuthSession,
@@ -8,6 +10,7 @@ import {
 import { defineStore } from "pinia";
 import { computed, ref } from "vue";
 import { authUserSchema, type AuthUser } from "~/schemas/auth.schema";
+import { createCognitoSignUpAttributes } from "~/utils/cognito-attributes";
 import { PATH } from "~/utils/path";
 
 export const useAuthStore = defineStore("authStore", () => {
@@ -51,6 +54,49 @@ export const useAuthStore = defineStore("authStore", () => {
     })();
 
     return initializationPromise;
+  }
+
+  async function signUp(
+    email: string,
+    password: string,
+    fullName: string,
+  ): Promise<void> {
+    const result = await cognitoSignUp({
+      username: email,
+      password,
+      options: {
+        userAttributes: createCognitoSignUpAttributes({
+          email,
+          fullName,
+        }),
+      },
+    });
+
+    if (result.isSignUpComplete) {
+      return;
+    }
+
+    if (result.nextStep.signUpStep !== "CONFIRM_SIGN_UP") {
+      throw new Error(
+        `Unsupported Cognito sign-up step: ${result.nextStep.signUpStep}`,
+      );
+    }
+  }
+
+  async function confirmSignUp(
+    email: string,
+    confirmationCode: string,
+  ): Promise<void> {
+    const result = await cognitoConfirmSignUp({
+      username: email,
+      confirmationCode,
+    });
+
+    if (!result.isSignUpComplete) {
+      throw new Error(
+        `Unsupported Cognito confirm sign-up step: ${result.nextStep.signUpStep}`,
+      );
+    }
   }
 
   async function signIn(email: string, password: string): Promise<void> {
@@ -97,6 +143,8 @@ export const useAuthStore = defineStore("authStore", () => {
     user,
     logout,
     signIn,
+    signUp,
+    confirmSignUp,
     loading,
     initialize,
     initialized,

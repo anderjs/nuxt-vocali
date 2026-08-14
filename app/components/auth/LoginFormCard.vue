@@ -98,6 +98,13 @@
         </span>
       </UButton>
     </UForm>
+
+    <p class="mt-6 text-center text-sm text-text-secondary">
+      ¿No tienes una cuenta?
+      <NuxtLink :to="PATH.SIGNUP" class="font-semibold text-primary">
+        Crear cuenta
+      </NuxtLink>
+    </p>
   </UCard>
 </template>
 
@@ -108,6 +115,7 @@ import AuthLogo from "./AuthLogo.vue";
 import PasswordField from "./PasswordField.vue";
 import { authFormFieldUi, authInputUi } from "./form-ui";
 import { loginSchema, type LoginSchema } from "~/schemas/login.schema";
+import { PATH } from "~/utils/path";
 
 defineProps<{
   errorMessage?: string;

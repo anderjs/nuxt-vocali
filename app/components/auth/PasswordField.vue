@@ -1,7 +1,7 @@
 <template>
   <UFormField
-    label="Contraseña"
-    name="password"
+    :label="label"
+    :name="name"
     size="lg"
     required
     :ui="authFormFieldUi"
@@ -13,8 +13,8 @@
       size="xl"
       color="primary"
       variant="outline"
-      placeholder="Introduce tu contraseña"
-      autocomplete="current-password"
+      :placeholder="placeholder"
+      :autocomplete="autocomplete"
       :ui="authPasswordInputUi"
     >
       <template #trailing>
@@ -37,6 +37,21 @@
 
 <script setup lang="ts">
 import { authFormFieldUi, authPasswordInputUi } from "./form-ui";
+
+withDefaults(
+  defineProps<{
+    autocomplete?: string;
+    label?: string;
+    name?: string;
+    placeholder?: string;
+  }>(),
+  {
+    autocomplete: "current-password",
+    label: "Contraseña",
+    name: "password",
+    placeholder: "Introduce tu contraseña",
+  },
+);
 
 const password = defineModel<string>({ required: true });
 const showPassword = ref(false);
