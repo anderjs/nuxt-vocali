@@ -87,29 +87,17 @@ export const useAuthStore = defineStore("authStore", () => {
     email: string,
     confirmationCode: string,
   ): Promise<void> {
-    const result = await cognitoConfirmSignUp({
+    await cognitoConfirmSignUp({
       username: email,
       confirmationCode,
     });
-
-    if (!result.isSignUpComplete) {
-      throw new Error(
-        `Unsupported Cognito confirm sign-up step: ${result.nextStep.signUpStep}`,
-      );
-    }
   }
 
   async function signIn(email: string, password: string): Promise<void> {
-    const result = await cognitoSignIn({
+    await cognitoSignIn({
       username: email,
       password,
     });
-
-    if (!result.isSignedIn) {
-      throw new Error(
-        `Unsupported Cognito sign-in step: ${result.nextStep.signInStep}`,
-      );
-    }
 
     await initialize(true);
   }
