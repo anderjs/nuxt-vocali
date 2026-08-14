@@ -9,6 +9,7 @@ export interface CreateUploadUrlParams {
   userId: string;
   fileName: string;
   contentType: string;
+  fileSize: number;
 }
 
 export interface CreateUploadUrlResult {
@@ -29,8 +30,13 @@ export class S3Service {
     userId,
     fileName,
     contentType,
+    fileSize,
   }: CreateUploadUrlParams): Promise<CreateUploadUrlResult> {
     const bucketName = config.s3BucketName;
+
+    if (!bucketName) {
+      throw new Error("S3 bucket name is not configured");
+    }
 
     const objectKey = createUploadObjectKey(userId, fileName);
 
@@ -39,6 +45,7 @@ export class S3Service {
       new PutObjectCommand({
         Key: objectKey,
         Bucket: bucketName,
+        ContentLength: fileSize,
         ContentType: contentType,
       }),
       { expiresIn: UPLOAD_URL_EXPIRES_IN_SECONDS },

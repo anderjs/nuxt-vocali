@@ -10,6 +10,11 @@ locals {
       route_key     = "POST /upload-url"
       protected     = true
     }
+    "create-realtime-token" = {
+      function_name = "create-realtime-token"
+      route_key     = "POST /realtime/token"
+      protected     = true
+    }
     "create-transcription" = {
       function_name = "create-transcription"
       route_key     = "POST /transcriptions"

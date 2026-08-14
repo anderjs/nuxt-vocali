@@ -1,50 +1,88 @@
 import {
+  createFileTranscription,
   createUploadUrl,
   uploadFileToSignedUrl,
 } from "~/services/upload.service";
-import { MAX_AUDIO_UPLOAD_SIZE_BYTES } from "~/utils/constants";
+import type { CreatedTranscription } from "~/schemas/transcription.schema";
+import { TranscriptionUploadStatus } from "~/common/types";
+import { getAudioFileValidationError } from "~/utils/files";
 
 export function useAudioUpload() {
   const api = useApi();
 
   const error = ref<string | null>(null);
 
-  const loading = ref(false);
+  const progress = ref(0);
 
-  async function upload(file: File): Promise<string> {
+  const status = ref(TranscriptionUploadStatus.IDLE);
+
+  const loading = computed(
+    () =>
+      status.value === TranscriptionUploadStatus.UPLOADING ||
+      status.value === TranscriptionUploadStatus.CREATING,
+  );
+
+  async function upload(file: File): Promise<CreatedTranscription> {
     error.value = null;
 
-    loading.value = true;
+    if (!validateFile(file)) {
+      throw new Error("Invalid audio file");
+    }
+
+    progress.value = 0;
+    status.value = TranscriptionUploadStatus.UPLOADING;
 
     try {
-      if (file.size > MAX_AUDIO_UPLOAD_SIZE_BYTES) {
-        throw new Error("El archivo no puede superar los 20 MB.");
-      }
-
       const upload = await createUploadUrl(api, file);
 
-      await uploadFileToSignedUrl(upload.uploadUrl, file);
+      await uploadFileToSignedUrl(upload.uploadUrl, file, (value) => {
+        progress.value = value;
+      });
 
-      return upload.objectKey;
+      status.value = TranscriptionUploadStatus.CREATING;
+
+      const transcription = await createFileTranscription(
+        api,
+        file,
+        upload.objectKey,
+      );
+
+      status.value = TranscriptionUploadStatus.SUCCESS;
+
+      return transcription;
     } catch (uploadError) {
-      error.value =
-        uploadError instanceof Error
-          ? uploadError.message
-          : "No pudimos subir el archivo.";
+      error.value ??=
+        status.value === TranscriptionUploadStatus.CREATING
+          ? "El archivo se subió, pero no pudimos preparar la transcripción. Inténtalo de nuevo."
+          : "No pudimos subir el archivo. Inténtalo de nuevo.";
+      status.value = TranscriptionUploadStatus.ERROR;
       throw uploadError;
-    } finally {
-      loading.value = false;
     }
   }
 
-  function clearError(): void {
+  function validateFile(file: File): boolean {
+    error.value = getAudioFileValidationError(file);
+
+    status.value = error.value
+      ? TranscriptionUploadStatus.ERROR
+      : TranscriptionUploadStatus.SELECTED;
+
+    return error.value === null;
+  }
+
+  function reset(): void {
     error.value = null;
+    progress.value = 0;
+    status.value = TranscriptionUploadStatus.IDLE;
   }
 
   return {
     error,
-    upload,
     loading,
-    clearError,
+    progress,
+    reset,
+    status,
+    upload,
+    validateFile,
   };
 }

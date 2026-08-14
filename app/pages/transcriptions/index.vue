@@ -36,12 +36,14 @@
     <TranscriptionsTable
       v-else-if="transcriptions.items.length"
       :page="transcriptions"
-      :page-size="TRANSCRIPTIONS_PAGE_SIZE"
       @next="next"
     />
     <TranscriptionsEmptyState v-else />
 
-    <NewTranscriptionModal v-model:open="newTranscriptionOpen" />
+    <NewTranscriptionModal
+      v-model:open="newTranscriptionOpen"
+      @uploaded="handleTranscriptionUploaded"
+    />
   </section>
 </template>
 
@@ -51,7 +53,6 @@ import NewTranscriptionModal from "~/components/transcriptions/NewTranscriptionM
 import NewTranscriptionButton from "~/components/transcriptions/NewTranscriptionButton.vue";
 import TranscriptionsEmptyState from "~/components/transcriptions/TranscriptionsEmptyState.vue";
 import TranscriptionsErrorState from "~/components/transcriptions/TranscriptionsErrorState.vue";
-import { TRANSCRIPTIONS_PAGE_SIZE } from "~/utils/constants";
 
 const newTranscriptionOpen = ref(false);
 
@@ -59,6 +60,10 @@ const { error, loading, next, refresh, transcriptions } = useTranscriptions();
 
 function openNewTranscriptionModal(): void {
   newTranscriptionOpen.value = true;
+}
+
+async function handleTranscriptionUploaded(): Promise<void> {
+  await refresh();
 }
 
 definePageMeta({

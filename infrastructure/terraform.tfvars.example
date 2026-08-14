@@ -19,6 +19,9 @@ cognito_logout_urls = [
 google_client_id     = "your-google-oauth-client-id.apps.googleusercontent.com"
 google_client_secret = "never-commit-real-google-client-secret"
 
+# Permanent server-side key. Never expose this value through Nuxt runtimeConfig.public.
+speechmatics_api_key = "never-commit-real-speechmatics-api-key"
+
 api_lambda_runtime = "nodejs20.x"
 
 

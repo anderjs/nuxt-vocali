@@ -13,18 +13,26 @@ export const handler: APIGatewayProxyHandlerV2 = authHandler(
   withValidation(
     { body: createUploadUrlRequestSchema },
     async (_event, request, claims) => {
-      const upload = await s3Service.createUploadUrl({
-        userId: claims.sub!,
-        fileName: request.body.fileName,
-        contentType: request.body.contentType,
-      });
+      try {
+        const upload = await s3Service.createUploadUrl({
+          userId: claims.sub!,
+          fileName: request.body.fileName,
+          fileSize: request.body.fileSize,
+          contentType: request.body.contentType,
+        });
 
-      const response = createUploadUrlResponseSchema.parse(upload);
+        const response = createUploadUrlResponseSchema.parse(upload);
 
-      return {
-        body: JSON.stringify(response),
-        statusCode: HttpStatusCode.OK,
-      };
+        return {
+          body: JSON.stringify(response),
+          statusCode: HttpStatusCode.OK,
+        };
+      } catch {
+        return {
+          body: JSON.stringify({ message: "Unable to prepare upload" }),
+          statusCode: HttpStatusCode.INTERNAL_SERVER_ERROR,
+        };
+      }
     },
   ),
 );

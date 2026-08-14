@@ -1,4 +1,12 @@
 import { z } from "zod";
+import {
+  MAX_AUDIO_UPLOAD_SIZE_BYTES,
+  SUPPORTED_AUDIO_CONTENT_TYPES,
+  hasSupportedAudioExtension,
+  isSupportedAudioFile,
+} from "../utils/storage";
+
+export const transcriptionTypeSchema = z.enum(["file", "realtime"]);
 
 export const transcriptionStatusSchema = z.enum([
   "pending",
@@ -11,6 +19,10 @@ export const transcriptionSchema = z.object({
   id: z.string().min(1),
   userId: z.string().min(1),
   fileName: z.string().min(1),
+  s3Key: z.string().min(1),
+  contentType: z.enum(SUPPORTED_AUDIO_CONTENT_TYPES),
+  fileSize: z.number().int().positive().max(MAX_AUDIO_UPLOAD_SIZE_BYTES),
+  type: transcriptionTypeSchema,
   status: transcriptionStatusSchema,
   createdAt: z.string().datetime(),
   updatedAt: z.string().datetime(),
@@ -20,22 +32,43 @@ export const transcriptionSchema = z.object({
   errorMessage: z.string().optional(),
 });
 
-export const createUploadUrlRequestSchema = z.object({
-  fileName: z.string().min(1),
-  contentType: z.string().min(1),
-  fileSize: z.number().int().positive().max(20 * 1024 * 1024),
-});
+export const createUploadUrlRequestSchema = z
+  .object({
+    fileName: z.string().min(1).refine(hasSupportedAudioExtension),
+    contentType: z.enum(SUPPORTED_AUDIO_CONTENT_TYPES),
+    fileSize: z
+      .number()
+      .int()
+      .positive()
+      .max(MAX_AUDIO_UPLOAD_SIZE_BYTES),
+  })
+  .refine(
+    ({ contentType, fileName }) =>
+      isSupportedAudioFile(fileName, contentType),
+  );
 
 export const createUploadUrlResponseSchema = z.object({
   uploadUrl: z.url(),
   objectKey: z.string().min(1),
 });
 
-export const createTranscriptionRequestSchema = z.object({
-  objectKey: z.string().min(1),
-  fileName: z.string().min(1),
-  language: z.string().min(2).optional(),
-});
+export const createTranscriptionRequestSchema = z
+  .object({
+    s3Key: z.string().min(1),
+    fileName: z.string().min(1).refine(hasSupportedAudioExtension),
+    contentType: z.enum(SUPPORTED_AUDIO_CONTENT_TYPES),
+    fileSize: z
+      .number()
+      .int()
+      .positive()
+      .max(MAX_AUDIO_UPLOAD_SIZE_BYTES),
+    type: z.literal("file"),
+    language: z.string().min(2).optional(),
+  })
+  .refine(
+    ({ contentType, fileName }) =>
+      isSupportedAudioFile(fileName, contentType),
+  );
 
 export const createTranscriptionResponseSchema = z.object({
   transcription: transcriptionSchema,
@@ -68,6 +101,7 @@ export const errorResponseSchema = z.object({
 });
 
 export type TranscriptionStatus = z.infer<typeof transcriptionStatusSchema>;
+export type TranscriptionType = z.infer<typeof transcriptionTypeSchema>;
 export type Transcription = z.infer<typeof transcriptionSchema>;
 
 export type CreateUploadUrlRequestDto = z.infer<

@@ -34,3 +34,9 @@ export function mapApiTranscriptionToListItem(
     status: TRANSCRIPTION_STATUS_MAP[transcription.status],
   };
 }
+
+export function containsProcessingTranscription(
+  transcriptions: TranscriptionListItem[],
+): boolean {
+  return transcriptions.some(({ status }) => status === "processing");
+}

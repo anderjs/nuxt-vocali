@@ -12,11 +12,16 @@ resource "aws_lambda_function" "handlers" {
   publish = false
 
   environment {
-    variables = {
-      APP_ENV             = "lambda"
-      DYNAMODB_TABLE_NAME = aws_dynamodb_table.app_table.name
-      S3_BUCKET_NAME      = aws_s3_bucket.app_bucket.bucket
-    }
+    variables = merge(
+      {
+        APP_ENV             = "lambda"
+        DYNAMODB_TABLE_NAME = aws_dynamodb_table.app_table.name
+        S3_BUCKET_NAME      = aws_s3_bucket.app_bucket.bucket
+      },
+      each.key == "create-realtime-token" ? {
+        SPEECHMATICS_API_KEY = var.speechmatics_api_key
+      } : {},
+    )
   }
 
   depends_on = [

@@ -102,6 +102,17 @@ variable "api_lambda_runtime" {
   }
 }
 
+variable "speechmatics_api_key" {
+  description = "Permanent Speechmatics API key used only by the realtime credential Lambda"
+  type        = string
+  sensitive   = true
+
+  validation {
+    condition     = length(trimspace(var.speechmatics_api_key)) > 0
+    error_message = "speechmatics_api_key must not be empty."
+  }
+}
+
 variable "api_log_retention_days" {
   description = "CloudWatch retention period for API Gateway and Lambda logs"
   type        = number

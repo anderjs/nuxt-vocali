@@ -3,6 +3,7 @@
     v-model:open="open"
     title="Nueva transcripción"
     description="Elige cómo quieres comenzar."
+    :ui="newTranscriptionModalUi"
   >
     <template #body>
       <div v-if="!method" class="grid gap-3 sm:grid-cols-2">
@@ -27,22 +28,96 @@
       <div v-else-if="method === 'file'" class="space-y-4">
         <UFormField label="Archivo de audio" name="audio">
           <UInput
+            :key="fileInputKey"
             type="file"
-            accept="audio/*,.mp3,.wav,.m4a,.aac,.ogg,.flac"
-            class="w-full"
-            :disabled="loading"
+            color="primary"
+            variant="outline"
+            :accept="AUDIO_FILE_ACCEPT"
+            :ui="audioFileInputUi"
+            :disabled="uploadLoading"
             @change="handleFileChange"
           />
         </UFormField>
         <p class="text-xs text-text-muted">
           Máximo 20 MB. Formatos: MP3, WAV, M4A, AAC, OGG y FLAC.
         </p>
+        <div
+          v-if="selectedFile"
+          :class="selectedAudioFileCardClass"
+        >
+          <div :class="selectedAudioFileMetaClass">
+            <p class="min-w-0 truncate text-sm font-medium text-foreground">
+              {{ selectedFile.name }}
+            </p>
+            <p class="shrink-0 text-sm text-text-muted">
+              {{ formatFileSize(selectedFile.size) }}
+            </p>
+          </div>
+          <UButton
+            color="neutral"
+            variant="ghost"
+            icon="i-lucide-x"
+            aria-label="Quitar archivo"
+            :class="selectedAudioFileRemoveButtonClass"
+            :disabled="uploadLoading"
+            @click="clearSelectedFile"
+          />
+        </div>
+        <div v-if="uploadLoading" class="space-y-2">
+          <div class="flex items-center justify-between gap-3 text-xs">
+            <span class="text-text-secondary">{{ uploadStatusLabel }}</span>
+            <span
+              v-if="uploadStatus === TranscriptionUploadStatus.UPLOADING"
+              class="text-text-muted"
+            >
+              {{ uploadProgress }}%
+            </span>
+          </div>
+          <UProgress
+            :model-value="uploadProgress"
+            :max="100"
+            color="primary"
+            size="sm"
+          />
+        </div>
         <UAlert
-          v-if="error"
+          v-if="uploadError"
+          color="neutral"
+          variant="soft"
+          icon="i-lucide-circle-alert"
+          title="No se pudo usar el archivo"
+          :description="uploadError"
+        />
+      </div>
+
+      <div v-else class="space-y-4">
+        <p class="text-sm text-text-secondary">
+          Usa el micrófono para transcribir la conversación en tiempo real.
+        </p>
+
+        <div
+          class="min-h-32 rounded-lg border border-border bg-background p-4"
+        >
+          <p
+            v-if="!transcript && !partialTranscript"
+            class="text-sm text-text-muted"
+          >
+            La transcripción aparecerá aquí.
+          </p>
+          <p v-else class="whitespace-pre-wrap text-sm text-foreground">
+            {{ transcript }}
+            <span v-if="partialTranscript" class="text-text-muted">
+              {{ partialTranscript }}
+            </span>
+          </p>
+        </div>
+
+        <UAlert
+          v-if="realtimeError"
           color="error"
           variant="soft"
-          title="No pudimos subir el archivo"
-          :description="error"
+          title="No pudimos transcribir en tiempo real"
+          :description="realtimeError"
         />
       </div>
     </template>
@@ -54,16 +129,27 @@
           variant="ghost"
           label="Volver"
           class="cursor-pointer"
-          :disabled="loading"
+          :disabled="uploadLoading || isRealtimeBusy"
           @click="resetMethod"
         />
         <UButton
+          v-if="method === 'file'"
           label="Subir archivo"
           icon="i-lucide-upload"
           class="cursor-pointer"
-          :disabled="!selectedFile || loading"
-          :loading="loading"
+          :disabled="!selectedFile || uploadLoading"
+          :loading="uploadLoading"
           @click="handleUploadClick"
+        />
+        <UButton
+          v-else
+          :label="realtimeButtonLabel"
+          :icon="isRecording ? 'i-lucide-square' : 'i-lucide-mic'"
+          class="cursor-pointer"
+          :color="isRecording ? 'neutral' : 'primary'"
+          :variant="isRecording ? 'outline' : 'solid'"
+          :loading="isRealtimeBusy"
+          @click="handleRealtimeToggle"
         />
       </div>
     </template>
@@ -71,10 +157,28 @@
 </template>
 
 <script setup lang="ts">
-import { getFirstInputFile } from "~/utils/files";
+import {
+  TranscriptionUploadStatus,
+  type NewTranscriptionModalEmit,
+} from "~/common/types";
+import {
+  AUDIO_FILE_ACCEPT,
+  clearInputFile,
+  formatFileSize,
+  getFirstInputFile,
+} from "~/utils/files";
+import {
+  audioFileInputUi,
+  newTranscriptionModalUi,
+  selectedAudioFileCardClass,
+  selectedAudioFileMetaClass,
+  selectedAudioFileRemoveButtonClass,
+} from "~/utils/transcription-upload-ui";
 import type { TranscriptionType } from "~/types/transcription";
 
 const open = defineModel<boolean>("open", { default: false });
+
+const emit = defineEmits<NewTranscriptionModalEmit>();
 
 const toast = useToast();
 
@@ -82,20 +186,86 @@ const method = ref<TranscriptionType | null>(null);
 
 const selectedFile = ref<File | null>(null);
 
-const { clearError, error, loading, upload } = useAudioUpload();
+const fileInputKey = ref(0);
+
+const {
+  error: uploadError,
+  loading: uploadLoading,
+  progress: uploadProgress,
+  reset: resetUpload,
+  status: uploadStatus,
+  upload,
+  validateFile,
+} = useAudioUpload();
+
+const uploadStatusLabel = computed(() =>
+  uploadStatus.value === TranscriptionUploadStatus.CREATING
+    ? "Preparando transcripción…"
+    : "Subiendo archivo…",
+);
+
+const {
+  error: realtimeError,
+  isConnecting,
+  isRecording,
+  isStopping,
+  partialTranscript,
+  start: startRealtimeTranscription,
+  stop: stopRealtimeTranscription,
+  transcript,
+} = useRealtimeTranscription();
+
+const isRealtimeBusy = computed(
+  () => isConnecting.value || isStopping.value,
+);
+
+const realtimeButtonLabel = computed(() => {
+  if (isStopping.value) {
+    return "Deteniendo...";
+  }
+
+  return isRecording.value ? "Detener" : "Iniciar transcripción";
+});
 
 function selectFileMethod(): void {
   method.value = "file";
 }
 
 function handleRealtimeClick(): void {
-  return;
+  method.value = "realtime";
 }
 
 function handleFileChange(event: Event): void {
-  selectedFile.value = getFirstInputFile(event);
+  const file = getFirstInputFile(event);
 
-  clearError();
+  if (!file) {
+    selectedFile.value = null;
+    resetUpload();
+    return;
+  }
+
+  if (!validateFile(file)) {
+    selectedFile.value = null;
+    clearInputFile(event);
+    return;
+  }
+
+  selectedFile.value = file;
+}
+
+function clearSelectedFile(): void {
+  selectedFile.value = null;
+  fileInputKey.value += 1;
+  resetUpload();
+}
+
+async function handleRealtimeToggle(): Promise<void> {
+  if (isRecording.value) {
+    await stopRealtimeTranscription();
+    return;
+  }
+
+  await startRealtimeTranscription();
 }
 
 async function handleUploadClick(): Promise<void> {
@@ -104,31 +274,32 @@ async function handleUploadClick(): Promise<void> {
   }
 
   try {
-    await upload(selectedFile.value);
+    const transcription = await upload(selectedFile.value);
 
     toast.add({
       color: "success",
       title: "Archivo subido",
-      description: "El archivo se subió correctamente.",
+      description: "La transcripción quedó preparada correctamente.",
     });
 
+    emit("uploaded", transcription);
     open.value = false;
   } catch {
     return;
   }
 }
 
-function resetMethod(): void {
+async function resetMethod(): Promise<void> {
+  await stopRealtimeTranscription();
+
   method.value = null;
 
-  selectedFile.value = null;
-
-  clearError();
+  clearSelectedFile();
 }
 
 watch(open, (isOpen) => {
   if (!isOpen) {
-    resetMethod();
+    void resetMethod();
   }
 });
 </script>

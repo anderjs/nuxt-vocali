@@ -8,6 +8,9 @@ export const PATH = {
 
 export type AppPath = (typeof PATH)[keyof typeof PATH];
 
+export function getTranscriptionPath(id: string): string {
+  return `${PATH.TRANSCRIPTIONS}/${encodeURIComponent(id)}`;
+}
 
 export enum API_QUERY_PARAM {
   LIMIT = "limit",

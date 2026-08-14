@@ -4,7 +4,7 @@ import type {
 } from "aws-lambda";
 import { ZodError, type z } from "zod";
 import { HttpStatusCode } from "../utils/code";
-import { parseJsonBody, parseUnknown } from "../utils/validation";
+import { parseJsonBody, parseParams } from "../utils/validation";
 
 type RequestSchema = z.ZodType;
 
@@ -36,15 +36,30 @@ function validateRequest<TSchemas extends RequestValidationSchemas>(
   event: APIGatewayProxyEventV2,
   schemas: TSchemas,
 ): ValidatedRequest<TSchemas> {
-  return {
-    body: schemas.body ? parseJsonBody(schemas.body, event.body) : undefined,
-    params: schemas.params
-      ? parseUnknown(schemas.params, event.pathParameters ?? {})
-      : undefined,
-    query: schemas.query
-      ? parseUnknown(schemas.query, event.queryStringParameters ?? {})
-      : undefined,
-  } as ValidatedRequest<TSchemas>;
+  const request = {} as ValidatedRequest<TSchemas>;
+
+  if (schemas?.body) {
+    request.body = parseJsonBody(
+      schemas.body,
+      event.body,
+    ) as ValidatedRequest<TSchemas>["body"];
+  }
+
+  if (schemas?.params) {
+    request.params = parseParams(
+      schemas.params,
+      event.pathParameters ?? {},
+    ) as ValidatedRequest<TSchemas>["params"];
+  }
+
+  if (schemas?.query) {
+    request.query = parseParams(
+      schemas.query,
+      event.queryStringParameters ?? {},
+    ) as ValidatedRequest<TSchemas>["query"];
+  }
+
+  return request;
 }
 
 export function withValidation<

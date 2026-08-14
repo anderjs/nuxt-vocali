@@ -8,6 +8,9 @@ const { resolve } = createResolver(import.meta.url);
 export default defineNuxtConfig({
   css: ["~/assets/main.css"],
   modules: ["@nuxt/ui", "@pinia/nuxt"],
+  ui: {
+    colorMode: false,
+  },
   icon: {
     customCollections: [
       {

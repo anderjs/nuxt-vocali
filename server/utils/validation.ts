@@ -7,7 +7,7 @@ export function parseJsonBody<TSchema extends z.ZodType>(
   return schema.parse(body ? JSON.parse(body) : {});
 }
 
-export function parseUnknown<TSchema extends z.ZodType>(
+export function parseParams<TSchema extends z.ZodType>(
   schema: TSchema,
   value: unknown,
 ): z.infer<TSchema> {

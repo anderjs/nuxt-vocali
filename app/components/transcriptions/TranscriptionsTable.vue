@@ -3,10 +3,12 @@
     <UTable
       :data="page.items"
       :columns="columns"
+      :on-select="handleRowSelect"
+      @keydown="handleTableKeydown"
       :ui="{
         thead: 'border-b border-border',
         tbody: 'divide-y divide-border',
-        tr: 'transition-colors hover:bg-surface-purple-subtle/30',
+        tr: 'cursor-pointer transition-colors hover:bg-surface-purple-subtle/30 focus-visible:bg-surface-purple-subtle/30',
         th: 'bg-surface-purple-subtle/50 text-xs font-semibold uppercase tracking-wide text-text-secondary',
         td: 'text-sm text-foreground',
       }"
@@ -27,42 +29,40 @@
         {{ formatShortDateEs(row.original.createdAt) }}
       </template>
 
-      <template #actions-cell>
+      <template #actions-cell="{ row }">
         <div class="flex justify-end gap-1">
-          <UButton
-            color="neutral"
-            variant="ghost"
-            size="sm"
-            icon="i-lucide-eye"
-            label="Ver"
-            class="cursor-pointer text-text-secondary hover:bg-surface-purple-subtle hover:text-foreground"
-          />
-          <UButton
-            color="neutral"
-            variant="ghost"
-            size="sm"
-            icon="i-lucide-download"
-            label="Descargar"
-            class="cursor-pointer text-text-secondary hover:bg-surface-purple-subtle hover:text-foreground"
-          />
+          <UTooltip text="Descargar">
+            <UButton
+              color="neutral"
+              variant="ghost"
+              size="sm"
+              square
+              icon="i-lucide-download"
+              aria-label="Descargar transcripción"
+              :disabled="row.original.status !== 'completed'"
+              :class="
+                row.original.status === 'completed'
+                  ? 'cursor-pointer text-text-secondary hover:bg-surface-purple-subtle hover:text-foreground'
+                  : 'cursor-not-allowed text-text-muted'
+              "
+              @click.stop
+            />
+          </UTooltip>
         </div>
       </template>
     </UTable>
 
     <div
-      class="flex items-center justify-between border-t border-border px-4 py-3"
+      v-if="page.nextCursor"
+      class="flex justify-end border-t border-border px-4 py-3"
     >
-      <p class="text-xs text-text-muted">
-        Hasta {{ pageSize }} transcripciones por página
-      </p>
       <UButton
         color="neutral"
         variant="outline"
         size="sm"
-        label="Siguiente"
-        trailing-icon="i-lucide-chevron-right"
-        :class="page.nextCursor ? 'cursor-pointer' : 'cursor-not-allowed'"
-        :disabled="!page.nextCursor"
+        label="Cargar más"
+        trailing-icon="i-lucide-chevron-down"
+        class="cursor-pointer"
         @click="handleNextClick"
       />
     </div>
@@ -70,7 +70,7 @@
 </template>
 
 <script setup lang="ts">
-import type { TableColumn } from "@nuxt/ui";
+import type { TableColumn, TableRow } from "@nuxt/ui";
 import type { TranscriptionsTableEmit } from "~/common/types";
 import type {
   TranscriptionListItem,
@@ -79,10 +79,10 @@ import type {
   TranscriptionType,
 } from "~/types/transcription";
 import { formatShortDateEs } from "~/utils/date";
+import { getTranscriptionPath } from "~/utils/path";
 
 const props = defineProps<{
   page: TranscriptionPage;
-  pageSize?: number;
 }>();
 
 const emit = defineEmits<TranscriptionsTableEmit>();
@@ -108,6 +108,44 @@ const statusConfig: Record<
   processing: { label: "Procesando", color: "warning" },
   error: { label: "Error", color: "error" },
 };
+
+function handleRowSelect(
+  _event: Event,
+  row: TableRow<TranscriptionListItem>,
+): void {
+  openTranscription(row.original.id);
+}
+
+function handleTableKeydown(event: KeyboardEvent): void {
+  if (event.key !== "Enter" && event.key !== " ") {
+    return;
+  }
+
+  const target = event.target;
+
+  if (!(target instanceof HTMLElement) || target.closest("button, a")) {
+    return;
+  }
+
+  const row = target.closest("tr");
+
+  if (!(row instanceof HTMLTableRowElement)) {
+    return;
+  }
+
+  const transcription = props.page.items[row.sectionRowIndex];
+
+  if (!transcription) {
+    return;
+  }
+
+  event.preventDefault();
+  openTranscription(transcription.id);
+}
+
+function openTranscription(id: string): void {
+  void navigateTo(getTranscriptionPath(id));
+}
 
 function handleNextClick(): void {
   if (props.page.nextCursor) {
