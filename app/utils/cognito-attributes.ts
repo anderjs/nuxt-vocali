@@ -16,7 +16,7 @@ function getUnixTimestamp(): string {
 export function getCognitoNameParts(fullName: string): CognitoNameParts {
   const nameParts = fullName.trim().split(/\s+/).filter(Boolean);
   const formattedName = nameParts.join(" ");
-  const familyName = nameParts.length > 1 ? nameParts.at(-1)! : formattedName;
+  const familyName = nameParts.at(-1) ?? formattedName;
   const middleName =
     nameParts.length > 2
       ? nameParts.slice(1, -1).join(" ")

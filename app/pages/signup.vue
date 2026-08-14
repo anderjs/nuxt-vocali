@@ -28,9 +28,15 @@ import type {
 } from "~/schemas/signup.schema";
 import { PATH } from "~/utils/path";
 import { useAuthStore } from "~/stores/auth";
+import {
+  getConfirmationErrorMessage,
+  isAlreadyConfirmedCognitoError,
+} from "~/utils/auth-errors";
 
 const authStore = useAuthStore();
+const toast = useToast();
 const registeredEmail = ref<string>();
+const registeredPassword = ref<string>();
 const signUpError = ref<string | null>(null);
 const signUpSuccess = ref<string | null>(null);
 const isConfirming = ref(false);
@@ -47,6 +53,7 @@ const handleSignUp = async ({ email, fullName, password }: SignUpSchema) => {
     await authStore.signUp(email, password, fullName);
     isConfirming.value = true;
     registeredEmail.value = email;
+    registeredPassword.value = password;
     signUpSuccess.value = "Cuenta creada. Revisa tu correo para confirmarla.";
   } catch {
     signUpError.value =
@@ -59,24 +66,43 @@ const handleSignUp = async ({ email, fullName, password }: SignUpSchema) => {
 const handleConfirmSignUp = async ({
   confirmationCode,
 }: ConfirmSignUpSchema) => {
-  if (!registeredEmail.value) {
+  const email = registeredEmail.value;
+  const password = registeredPassword.value;
+
+  if (!email || !password) {
     signUpError.value = "Vuelve a iniciar el registro.";
     return;
   }
 
   signUpError.value = null;
-
   isSubmitting.value = true;
 
   try {
-    await authStore.confirmSignUp(registeredEmail.value, confirmationCode);
+    try {
+      await authStore.confirmSignUp(email, confirmationCode);
+    } catch (error) {
+      if (!isAlreadyConfirmedCognitoError(error)) {
+        signUpError.value = getConfirmationErrorMessage(error);
+        return;
+      }
+    }
 
-    await navigateTo(PATH.LOGIN);
-  } catch {
-    signUpError.value =
-      "No pudimos confirmar tu cuenta. Revisa el código e inténtalo de nuevo.";
+    try {
+      await authStore.signIn(email, password);
+      registeredPassword.value = undefined;
+      await navigateTo(PATH.TRANSCRIPTIONS);
+    } catch {
+      registeredPassword.value = undefined;
+      toast.add({
+        title: "Cuenta confirmada",
+        description: "Inicia sesión para continuar.",
+        color: "success",
+      });
+      await navigateTo(PATH.LOGIN);
+    }
   } finally {
     isSubmitting.value = false;
   }
 };
+
 </script>

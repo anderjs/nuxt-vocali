@@ -5,13 +5,13 @@
     <UCard
       class="w-full max-w-sm rounded-2xl bg-background shadow-sm ring-border"
     >
-      <div v-if="oauthError" class="space-y-4 text-center">
+      <div v-if="hasOAuthError" class="space-y-4 text-center">
         <div class="space-y-2">
           <p class="text-base font-semibold text-foreground">
             No se pudo iniciar sesión
           </p>
           <p class="text-sm text-text-secondary">
-            {{ oauthError }}
+            Inténtalo nuevamente o vuelve al inicio de sesión.
           </p>
         </div>
 
@@ -33,36 +33,20 @@
 <script setup lang="ts">
 import { useAuthStore } from "~/stores/auth";
 import { PATH } from "~/utils/path";
-import { getQueryValue } from "#imports";
+import { getQueryValue } from "~/utils/query";
 
 const route = useRoute();
 
 const authStore = useAuthStore();
 
-/**
- * @description
- * Gets oauth error in case something happened.
- */
-const oauthError = computed(() => {
-  const description = getQueryValue(route.query?.error_description);
+const hasOAuthError = computed(
+  () =>
+    Boolean(getQueryValue(route.query.error_description)) ||
+    Boolean(getQueryValue(route.query.error)),
+);
 
-  if (description) {
-    return description.replaceAll("+", " ");
-  }
-
-  return getQueryValue(route.query?.error);
-});
-
-/**
- * @description
- * Lifecycle to handle authentication.
- */
 onMounted(async () => {
-  /**
-   * @description
-   * OAuth error valuue.
-   */
-  if (oauthError.value) {
+  if (hasOAuthError.value) {
     return;
   }
 
