@@ -17,10 +17,15 @@ export const handler: APIGatewayProxyHandlerV2 = authHandler(
     async (_event, request, claims) => {
       try {
         const transcription =
-          await transcriptionService.createFileTranscription(
-            claims.sub!,
-            request.body,
-          );
+          request.body.type === "realtime"
+            ? await transcriptionService.createRealtimeTranscription(
+                claims.sub,
+                request.body,
+              )
+            : await transcriptionService.createFileTranscription(
+                claims.sub,
+                request.body,
+              );
 
         const response = createTranscriptionResponseSchema.parse({
           transcription,

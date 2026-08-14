@@ -103,7 +103,7 @@ variable "api_lambda_runtime" {
 }
 
 variable "speechmatics_api_key" {
-  description = "Permanent Speechmatics API key used only by the realtime credential Lambda"
+  description = "Permanent Speechmatics API key used only by server-side Speechmatics Lambdas"
   type        = string
   sensitive   = true
 

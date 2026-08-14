@@ -21,6 +21,9 @@ resource "aws_lambda_function" "handlers" {
       each.key == "create-realtime-token" ? {
         SPEECHMATICS_API_KEY = var.speechmatics_api_key
       } : {},
+      each.key == "create-transcription" ? {
+        PROCESS_TRANSCRIPTION_FUNCTION_NAME = aws_lambda_function.process_transcription.function_name
+      } : {},
     )
   }
 
@@ -51,5 +54,43 @@ resource "aws_lambda_permission" "apigw_invoke" {
 resource "aws_cloudwatch_log_group" "lambda_handlers" {
   for_each          = local.lambda_routes
   name              = "/aws/lambda/${aws_lambda_function.handlers[each.key].function_name}"
+  retention_in_days = var.api_log_retention_days
+}
+
+# Internal worker: invoked asynchronously by create-transcription, never exposed via API Gateway.
+data "archive_file" "process_transcription_package" {
+  type        = "zip"
+  source_file = "${path.module}/../server/dist/process-transcription.js"
+  output_path = "${path.module}/build/process-transcription.zip"
+}
+
+resource "aws_lambda_function" "process_transcription" {
+  function_name = "vocali-process-transcription"
+  role          = aws_iam_role.lambda_execution_role.arn
+  runtime       = var.api_lambda_runtime
+  handler       = "process-transcription.handler"
+  timeout       = 300
+  memory_size   = 512
+
+  filename         = data.archive_file.process_transcription_package.output_path
+  source_code_hash = data.archive_file.process_transcription_package.output_base64sha256
+
+  environment {
+    variables = {
+      APP_ENV              = "lambda"
+      DYNAMODB_TABLE_NAME  = aws_dynamodb_table.app_table.name
+      S3_BUCKET_NAME       = aws_s3_bucket.app_bucket.bucket
+      SPEECHMATICS_API_KEY = var.speechmatics_api_key
+    }
+  }
+
+  depends_on = [
+    aws_iam_role_policy_attachment.lambda_basic_execution,
+    data.archive_file.process_transcription_package,
+  ]
+}
+
+resource "aws_cloudwatch_log_group" "process_transcription" {
+  name              = "/aws/lambda/${aws_lambda_function.process_transcription.function_name}"
   retention_in_days = var.api_log_retention_days
 }

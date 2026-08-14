@@ -51,10 +51,12 @@ data "aws_iam_policy_document" "lambda_s3_access" {
     effect = "Allow"
 
     actions = [
+      "s3:GetObject",
       "s3:PutObject",
     ]
 
     resources = [
+      "${aws_s3_bucket.app_bucket.arn}/transcriptions/*",
       "${aws_s3_bucket.app_bucket.arn}/uploads/*",
     ]
   }
@@ -64,4 +66,21 @@ resource "aws_iam_role_policy" "lambda_s3_access" {
   name   = "vocali-lambda-s3-access"
   role   = aws_iam_role.lambda_execution_role.id
   policy = data.aws_iam_policy_document.lambda_s3_access.json
+}
+
+
+data "aws_iam_policy_document" "lambda_invoke_process_transcription" {
+  statement {
+    effect = "Allow"
+
+    actions = ["lambda:InvokeFunction"]
+
+    resources = [aws_lambda_function.process_transcription.arn]
+  }
+}
+
+resource "aws_iam_role_policy" "lambda_invoke_process_transcription" {
+  name   = "vocali-lambda-invoke-process-transcription"
+  role   = aws_iam_role.lambda_execution_role.id
+  policy = data.aws_iam_policy_document.lambda_invoke_process_transcription.json
 }

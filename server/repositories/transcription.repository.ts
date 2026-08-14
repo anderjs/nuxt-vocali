@@ -10,20 +10,25 @@ import type {
 
 export interface TranscriptionRepositoryPort {
   createTranscription(transcription: Transcription): Promise<Transcription>;
+  markTranscriptionFailed(id: string): Promise<Transcription>;
 }
 
-/**
- * @description
- * Transcription Repository.
- */
+export interface TranscriptionLookupRepositoryPort {
+  getTranscriptionById(id: string): Promise<Transcription | null>;
+}
+
+export interface TranscriptionProcessingRepositoryPort
+  extends TranscriptionLookupRepositoryPort {
+  markTranscriptionCompleted(input: {
+    id: string;
+    transcriptionS3Key: string;
+  }): Promise<Transcription>;
+  markTranscriptionFailed(id: string): Promise<Transcription>;
+}
+
 export class TranscriptionRepository {
   constructor(private readonly dynamodb: DynamoDBService = dynamoDBService) {}
 
-  /**
-   * @description
-   *
-   * @param transcription - current transcription.
-   */
   async createTranscription(
     transcription: Transcription,
   ): Promise<Transcription> {
@@ -32,13 +37,24 @@ export class TranscriptionRepository {
     return transcription;
   }
 
-  /**
-   * @description
-   * Fetch transcriptions from dynamo.
-   * @param limit - pagination args.
-   * @param cursor - pagination args.
-   * @param userId - user id.
-   */
+  async markTranscriptionCompleted({
+    id,
+    transcriptionS3Key,
+  }: {
+    id: string;
+    transcriptionS3Key: string;
+  }): Promise<Transcription> {
+    return this.dynamodb.markTranscriptionCompleted(id, transcriptionS3Key);
+  }
+
+  async markTranscriptionFailed(id: string): Promise<Transcription> {
+    return this.dynamodb.markTranscriptionFailed(id);
+  }
+
+  async getTranscriptionById(id: string): Promise<Transcription | null> {
+    return this.dynamodb.getTranscriptionById(id);
+  }
+
   async listTranscriptions(
     userId: string,
     params: ListTranscriptionsQueryDto,

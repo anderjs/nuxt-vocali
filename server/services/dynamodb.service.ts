@@ -2,6 +2,8 @@ import {
   QueryCommand,
   DynamoDBClient,
   PutItemCommand,
+  GetItemCommand,
+  UpdateItemCommand,
   type AttributeValue,
 } from "@aws-sdk/client-dynamodb";
 import { marshall, unmarshall } from "@aws-sdk/util-dynamodb";
@@ -31,21 +33,28 @@ const defaultItems: Record<string, AttributeValue>[] = [];
 
 export class DynamoDBService {
   private readonly client: DynamoDBClient;
+  private readonly tableName: string;
 
-  constructor(client?: DynamoDBClient) {
+  constructor(
+    client?: DynamoDBClient,
+    tableName = config.dynamodbTableName,
+  ) {
+    if (!tableName) {
+      throw new Error("DynamoDB table name is not configured");
+    }
+
     this.client =
       client ??
       new DynamoDBClient({
         region: config.awsRegion,
       });
+    this.tableName = tableName;
   }
 
   async putTranscription(transcription: Transcription): Promise<void> {
-    const tableName = config.dynamodbTableName;
-
     await this.client.send(
       new PutItemCommand({
-        TableName: tableName,
+        TableName: this.tableName,
         Item: marshall(transcription, { removeUndefinedValues: true }),
         ConditionExpression: "attribute_not_exists(#id)",
         ExpressionAttributeNames: {
@@ -55,20 +64,87 @@ export class DynamoDBService {
     );
   }
 
-  /**
-   * @description
-   * Fetch transcription.
-   */
+  async markTranscriptionCompleted(
+    id: string,
+    transcriptionS3Key: string,
+  ): Promise<Transcription> {
+    return this.updateTranscriptionStatus({
+      id,
+      status: "completed",
+      transcriptionS3Key,
+    });
+  }
+
+  async markTranscriptionFailed(id: string): Promise<Transcription> {
+    return this.updateTranscriptionStatus({ id, status: "failed" });
+  }
+
+  private async updateTranscriptionStatus({
+    id,
+    status,
+    transcriptionS3Key,
+  }: {
+    id: string;
+    status: "completed" | "failed";
+    transcriptionS3Key?: string;
+  }): Promise<Transcription> {
+    const updatedAt = new Date().toISOString();
+    const response = await this.client.send(
+      new UpdateItemCommand({
+        TableName: this.tableName,
+        Key: { id: { S: id } },
+        UpdateExpression:
+          status === "completed"
+            ? "SET #status = :status, #updatedAt = :updatedAt, #transcriptionS3Key = :transcriptionS3Key"
+            : "SET #status = :status, #updatedAt = :updatedAt",
+        ConditionExpression: "#status = :processing",
+        ExpressionAttributeNames: {
+          "#status": "status",
+          "#updatedAt": "updatedAt",
+          "#transcriptionS3Key": "transcriptionS3Key",
+        },
+        ExpressionAttributeValues: {
+          ":status": { S: status },
+          ":updatedAt": { S: updatedAt },
+          ":processing": { S: "processing" },
+          ...(transcriptionS3Key
+            ? { ":transcriptionS3Key": { S: transcriptionS3Key } }
+            : {}),
+        },
+        ReturnValues: "ALL_NEW",
+      }),
+    );
+
+    if (!response.Attributes) {
+      throw new Error("Transcription status was not updated");
+    }
+
+    return transcriptionSchema.parse(unmarshall(response.Attributes));
+  }
+
+  async getTranscriptionById(id: string): Promise<Transcription | null> {
+    const response = await this.client.send(
+      new GetItemCommand({
+        TableName: this.tableName,
+        Key: {
+          id: { S: id },
+        },
+      }),
+    );
+
+    return response.Item
+      ? transcriptionSchema.parse(unmarshall(response.Item))
+      : null;
+  }
+
   async listTranscriptionsByUserId({
     userId,
     limit,
     cursor,
   }: ListTranscriptionsByUserIdParams): Promise<ListTranscriptionsByUserIdResult> {
-    const tableName = config.dynamodbTableName;
-
     const response = await this.client.send(
       new QueryCommand({
-        TableName: tableName,
+        TableName: this.tableName,
         ExpressionAttributeNames: {
           "#userId": "userId",
         },

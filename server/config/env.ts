@@ -14,4 +14,5 @@ export const config = {
   s3BucketName: process.env.S3_BUCKET_NAME,
   dynamodbTableName: process.env.DYNAMODB_TABLE_NAME,
   cognitoUserPoolId: process.env.COGNITO_USER_POOL_ID,
+  processTranscriptionFunctionName: process.env.PROCESS_TRANSCRIPTION_FUNCTION_NAME,
 };

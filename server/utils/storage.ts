@@ -42,6 +42,32 @@ export function createUploadObjectKey(
   return `uploads/${userId}/${randomUUID()}-${sanitizeFileName(fileName)}`;
 }
 
+export function createTranscriptionResultObjectKey(
+  userId: string,
+  transcriptionId: string,
+): string {
+  return `transcriptions/${userId}/${transcriptionId}.txt`;
+}
+
+export const createRealtimeTranscriptionObjectKey = createTranscriptionResultObjectKey;
+
+export function createRealtimeTranscriptionFileName(date: Date): string {
+  const timestamp = date.toISOString().replace(/[:.]/g, "-").slice(0, 16);
+
+  return `transcripcion-${timestamp}.txt`;
+}
+
+export function createTranscriptionDownloadFileName(fileName: string): string {
+  const sanitizedFileName = sanitizeFileName(fileName);
+  const extensionIndex = sanitizedFileName.lastIndexOf(".");
+  const baseName =
+    extensionIndex > 0
+      ? sanitizedFileName.slice(0, extensionIndex)
+      : sanitizedFileName;
+
+  return `${baseName || "transcripcion"}.txt`;
+}
+
 export function isUploadObjectKeyOwnedByUser(
   objectKey: string,
   userId: string,
