@@ -1,8 +1,7 @@
 import "aws-amplify/auth/enable-oauth-listener";
 import { Amplify } from "aws-amplify";
-import { Hub } from "aws-amplify/utils";
 import { useAuthStore } from "~/stores/auth";
-import { OAUTH_CALLBACK_TIMEOUT_MS } from "~/utils/constants";
+import { waitForOAuthCallback } from "~/utils/auth-oauth";
 import { isOAuthCallbackUrl } from "~/utils/query";
 
 export default defineNuxtPlugin(async () => {
@@ -15,21 +14,9 @@ export default defineNuxtPlugin(async () => {
     config.public.cognitoRedirectUri,
   );
 
-  let resolveOAuthCallback: (() => void) | undefined;
   const oauthCallback = isOAuthCallback
-    ? new Promise<void>((resolve) => {
-        resolveOAuthCallback = resolve;
-      })
-    : null;
-
-  const stopListening = Hub.listen("auth", ({ payload }) => {
-    if (
-      payload.event === "signInWithRedirect" ||
-      payload.event === "signInWithRedirect_failure"
-    ) {
-      resolveOAuthCallback?.();
-    }
-  });
+    ? waitForOAuthCallback()
+    : Promise.resolve();
 
   Amplify.configure({
     Auth: {
@@ -49,16 +36,7 @@ export default defineNuxtPlugin(async () => {
     },
   });
 
-  if (oauthCallback) {
-    await Promise.race([
-      oauthCallback,
-      new Promise<void>((resolve) => {
-        window.setTimeout(resolve, OAUTH_CALLBACK_TIMEOUT_MS);
-      }),
-    ]);
-  }
+  await oauthCallback;
 
   await authStore.initialize(true);
-
-  stopListening();
 });
