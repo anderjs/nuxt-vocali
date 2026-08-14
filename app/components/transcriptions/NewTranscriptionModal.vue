@@ -113,11 +113,11 @@
         </div>
 
         <UAlert
-          v-if="realtimeError"
+          v-if="realtimeError || realtimePersistenceError"
           color="error"
           variant="soft"
-          title="No pudimos transcribir en tiempo real"
-          :description="realtimeError"
+          title="No pudimos guardar la transcripción"
+          :description="realtimePersistenceError ?? realtimeError ?? undefined"
         />
       </div>
     </template>
@@ -144,7 +144,7 @@
         <UButton
           v-else
           :label="realtimeButtonLabel"
-          :icon="isRecording ? 'i-lucide-square' : 'i-lucide-mic'"
+          :icon="realtimeButtonIcon"
           class="cursor-pointer"
           :color="isRecording ? 'neutral' : 'primary'"
           :variant="isRecording ? 'outline' : 'solid'"
@@ -175,12 +175,14 @@ import {
   selectedAudioFileRemoveButtonClass,
 } from "~/utils/transcription-upload-ui";
 import type { TranscriptionType } from "~/types/transcription";
+import { createRealtimeTranscription } from "~/services/transcriptions.service";
 
 const open = defineModel<boolean>("open", { default: false });
 
 const emit = defineEmits<NewTranscriptionModalEmit>();
 
 const toast = useToast();
+const api = useApi();
 
 const method = ref<TranscriptionType | null>(null);
 
@@ -205,6 +207,7 @@ const uploadStatusLabel = computed(() =>
 );
 
 const {
+  complete: completeRealtimeSession,
   error: realtimeError,
   isConnecting,
   isRecording,
@@ -215,8 +218,19 @@ const {
   transcript,
 } = useRealtimeTranscription();
 
+const realtimePersistenceError = ref<string | null>(null);
+const realtimeStartedAt = ref<string | null>(null);
+const isPersistingRealtime = ref(false);
+
+const canRetryRealtimePersistence = computed(
+  () =>
+    Boolean(realtimePersistenceError.value) &&
+    Boolean(realtimeStartedAt.value) &&
+    Boolean(transcript.value.trim()),
+);
 const isRealtimeBusy = computed(
-  () => isConnecting.value || isStopping.value,
+  () =>
+    isConnecting.value || isStopping.value || isPersistingRealtime.value,
 );
 
 const realtimeButtonLabel = computed(() => {
@@ -224,7 +238,23 @@ const realtimeButtonLabel = computed(() => {
     return "Deteniendo...";
   }
 
+  if (isPersistingRealtime.value) {
+    return "Guardando...";
+  }
+
+  if (canRetryRealtimePersistence.value) {
+    return "Reintentar guardar";
+  }
+
   return isRecording.value ? "Detener" : "Iniciar transcripción";
+});
+
+const realtimeButtonIcon = computed(() => {
+  if (canRetryRealtimePersistence.value) {
+    return "i-lucide-refresh-cw";
+  }
+
+  return isRecording.value ? "i-lucide-square" : "i-lucide-mic";
 });
 
 function selectFileMethod(): void {
@@ -259,13 +289,65 @@ function clearSelectedFile(): void {
   resetUpload();
 }
 
+async function persistRealtimeTranscription(): Promise<boolean> {
+  const text = transcript.value.trim();
+  const startedAt = realtimeStartedAt.value;
+
+  if (!text || !startedAt) {
+    completeRealtimeSession();
+    return true;
+  }
+
+  isPersistingRealtime.value = true;
+
+  try {
+    const transcription = await createRealtimeTranscription(api, {
+      endedAt: new Date().toISOString(),
+      startedAt,
+      text,
+    });
+
+    emit("uploaded", transcription);
+    open.value = false;
+    return true;
+  } catch {
+    realtimePersistenceError.value =
+      "La transcripción está disponible, pero no pudimos guardarla. Inténtalo nuevamente.";
+    toast.add({
+      color: "error",
+      title: "No pudimos guardar la transcripción",
+    });
+    return false;
+  } finally {
+    completeRealtimeSession();
+    isPersistingRealtime.value = false;
+  }
+}
+
+async function stopAndPersistRealtimeTranscription(): Promise<boolean> {
+  await stopRealtimeTranscription();
+  return persistRealtimeTranscription();
+}
+
 async function handleRealtimeToggle(): Promise<void> {
-  if (isRecording.value) {
-    await stopRealtimeTranscription();
+  if (canRetryRealtimePersistence.value) {
+    realtimePersistenceError.value = null;
+    await persistRealtimeTranscription();
     return;
   }
 
+  if (isRecording.value) {
+    await stopAndPersistRealtimeTranscription();
+    return;
+  }
+
+  realtimePersistenceError.value = null;
+  realtimeStartedAt.value = new Date().toISOString();
   await startRealtimeTranscription();
+
+  if (!isRecording.value) {
+    realtimeStartedAt.value = null;
+  }
 }
 
 async function handleUploadClick(): Promise<void> {
@@ -290,14 +372,26 @@ async function handleUploadClick(): Promise<void> {
 }
 
 async function resetMethod(): Promise<void> {
-  await stopRealtimeTranscription();
+  if (isRecording.value || isConnecting.value || isStopping.value) {
+    const persisted = await stopAndPersistRealtimeTranscription();
+
+    if (!persisted) {
+      open.value = true;
+      return;
+    }
+  }
 
   method.value = null;
-
+  realtimeStartedAt.value = null;
   clearSelectedFile();
 }
 
 watch(open, (isOpen) => {
+  if (!isOpen && isPersistingRealtime.value) {
+    open.value = true;
+    return;
+  }
+
   if (!isOpen) {
     void resetMethod();
   }

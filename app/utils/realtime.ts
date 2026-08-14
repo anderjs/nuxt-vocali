@@ -1,22 +1,30 @@
 import type { RealtimeTranscriptionConfig } from "@speechmatics/real-time-client";
 import workletScriptUrl from "@speechmatics/browser-audio-input/pcm-audio-worklet.min.js?url";
-import type { PcmAudioCapture } from "~/common/types";
 
 export const SPEECHMATICS_APP_ID = "vocali-nuxt";
 export const SPEECHMATICS_SAMPLE_RATE = 16_000;
+export const SPEECHMATICS_WORKLET_URL = workletScriptUrl;
 
-export async function prepareRealtimeAudioContext(): Promise<AudioContext> {
-  const audioContext = new AudioContext({
+export function createRealtimeAudioContext(): AudioContext {
+  return new AudioContext({
     sampleRate: SPEECHMATICS_SAMPLE_RATE,
   });
+}
 
-  await audioContext.audioWorklet.addModule(workletScriptUrl);
+/**
+ * Copies a PCM chunk into an ArrayBuffer accepted by the browser WebSocket API.
+ * The copy prevents a SharedArrayBuffer-backed typed array from crossing the
+ * Speechmatics client boundary.
+ *
+ * @param audio PCM samples emitted by the browser audio recorder.
+ * @returns A standalone buffer containing the same PCM samples.
+ */
+export function createPcmAudioBuffer(audio: Float32Array): ArrayBuffer {
+  const buffer = new ArrayBuffer(audio.byteLength);
 
-  if (audioContext.state !== "running") {
-    await audioContext.resume();
-  }
+  new Float32Array(buffer).set(audio);
 
-  return audioContext;
+  return buffer;
 }
 
 export function createRealtimeTranscriptionConfig(
@@ -33,44 +41,6 @@ export function createRealtimeTranscriptionConfig(
       language: "es",
     },
   };
-}
-
-export function startPcmAudioCapture(
-  audioContext: AudioContext,
-  mediaStream: MediaStream,
-  onAudio: (audio: Float32Array) => void,
-): PcmAudioCapture {
-  const inputSource = audioContext.createMediaStreamSource(mediaStream);
-  const workletNode = new AudioWorkletNode(
-    audioContext,
-    "pcm-audio-processor",
-  );
-
-  workletNode.port.onmessage = (event: MessageEvent<Float32Array>) => {
-    onAudio(event.data);
-  };
-
-  inputSource.connect(workletNode);
-  workletNode.connect(audioContext.destination);
-
-  return { inputSource, workletNode };
-}
-
-export function stopPcmAudioCapture(
-  capture: PcmAudioCapture | null,
-): void {
-  if (!capture) {
-    return;
-  }
-
-  capture.workletNode.port.onmessage = null;
-  capture.workletNode.port.postMessage("stop");
-  capture.inputSource.disconnect();
-  capture.workletNode.disconnect();
-}
-
-export function stopMediaStream(mediaStream: MediaStream | null): void {
-  mediaStream?.getTracks().forEach((track) => track.stop());
 }
 
 export async function closeAudioContext(

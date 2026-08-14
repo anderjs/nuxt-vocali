@@ -1,4 +1,6 @@
 import type { InputProps, ModalProps, NavigationMenuItem } from "@nuxt/ui";
+import type { PCMRecorder } from "@speechmatics/browser-audio-input";
+import type { RealtimeClient } from "@speechmatics/real-time-client";
 import type { AuthUser } from "~/schemas/auth.schema";
 import type { CreatedTranscription } from "~/schemas/transcription.schema";
 
@@ -32,6 +34,7 @@ export type OpenNavigationEmit = {
 };
 
 export type TranscriptionsTableEmit = {
+  download: [id: string];
   next: [cursor: string];
 };
 
@@ -98,16 +101,17 @@ export interface CognitoRequiredSignUpAttributes {
   updated_at: string;
 }
 
-export interface PcmAudioCapture {
-  inputSource: MediaStreamAudioSourceNode;
-  workletNode: AudioWorkletNode;
-}
-
 export enum RealtimeTranscriptionStatus {
   IDLE = "idle",
   CONNECTING = "connecting",
   RECORDING = "recording",
   STOPPING = "stopping",
+}
+
+export interface RealtimeTranscriptionPersistenceInput {
+  endedAt: string;
+  startedAt: string;
+  text: string;
 }
 
 export interface RealtimeSessionCallbacks {
@@ -120,4 +124,21 @@ export interface RealtimeSessionCallbacks {
 export interface RealtimeSession {
   start(token: string): Promise<boolean>;
   stop(): Promise<void>;
+}
+
+export interface RealtimeSessionResources {
+  audioContext: AudioContext;
+  client: RealtimeClient;
+  clientStartPromise: ReturnType<RealtimeClient["start"]> | null;
+  recorder: PCMRecorder;
+  recorderStartPromise: ReturnType<PCMRecorder["startRecording"]>;
+  recognitionReady: boolean;
+}
+
+export interface RealtimeSessionContext {
+  activeResources: RealtimeSessionResources | null;
+  sessionVersion: number;
+  stopPromise: Promise<void> | null;
+  stopping: boolean;
+  unexpectedStopStarted: boolean;
 }
