@@ -59,6 +59,11 @@ output "cognito_managed_login_domain" {
   value       = "https://${aws_cognito_user_pool_domain.managed_login.domain}.auth.${var.aws_region}.amazoncognito.com"
 }
 
+output "cognito_managed_login_host" {
+  description = "Cognito managed-login host for NUXT_PUBLIC_COGNITO_DOMAIN"
+  value       = "${aws_cognito_user_pool_domain.managed_login.domain}.auth.${var.aws_region}.amazoncognito.com"
+}
+
 output "cognito_oauth_callback_urls" {
   description = "Configured Cognito OAuth callback URLs"
   value       = aws_cognito_user_pool_client.app_client.callback_urls
@@ -72,4 +77,19 @@ output "cognito_oauth_logout_urls" {
 output "google_oauth_authorized_redirect_uri" {
   description = "Redirect URI that must be configured in Google Cloud Console for Cognito federation"
   value       = "https://${aws_cognito_user_pool_domain.managed_login.domain}.auth.${var.aws_region}.amazoncognito.com/oauth2/idpresponse"
+}
+
+output "frontend_bucket_name" {
+  description = "Private S3 bucket that receives generated Nuxt static files"
+  value       = aws_s3_bucket.frontend.bucket
+}
+
+output "frontend_distribution_id" {
+  description = "CloudFront distribution ID to invalidate after a frontend upload"
+  value       = aws_cloudfront_distribution.frontend.id
+}
+
+output "frontend_url" {
+  description = "Default HTTPS URL for the production Nuxt frontend"
+  value       = local.frontend_url
 }

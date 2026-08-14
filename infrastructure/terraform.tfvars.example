@@ -1,6 +1,7 @@
 aws_region = "eu-north-1"
 
 bucket_name         = "vocali-s3"
+frontend_bucket_name = "vocali-frontend-unique-name"
 dynamodb_table_name = "transcriptions"
 
 cognito_user_pool_id          = "eu-north-1_XXXXXXXXX"

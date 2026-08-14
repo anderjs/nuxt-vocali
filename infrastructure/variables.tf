@@ -10,6 +10,11 @@ variable "bucket_name" {
   default     = "vocali-s3"
 }
 
+variable "frontend_bucket_name" {
+  description = "Globally unique private S3 bucket name for the static Nuxt frontend"
+  type        = string
+}
+
 variable "dynamodb_table_name" {
   description = "Name of the DynamoDB table"
   type        = string

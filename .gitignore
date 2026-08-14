@@ -27,6 +27,7 @@ logs
 .terraform/
 .terraform.lock.hcl
 infrastructure/build/
+infrastructure/tfplan*
 *.tfstate
 *.tfstate.*
 crash.log
@@ -41,3 +42,4 @@ override.tf.json
 .terraformrc
 terraform.rc
 .agents
+!.terraform.lock.hcl

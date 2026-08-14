@@ -1,8 +1,14 @@
 locals {
-  cognito_callback_urls = distinct(var.cognito_callback_urls)
-  cognito_logout_urls   = distinct(var.cognito_logout_urls)
-  google_oauth_scopes   = ["openid", "email", "profile"]
-  cognito_oauth_scopes  = concat(local.google_oauth_scopes, ["aws.cognito.signin.user.admin"])
+  cognito_callback_urls = distinct(concat(
+    var.cognito_callback_urls,
+    ["${local.frontend_url}/auth/callback"],
+  ))
+  cognito_logout_urls = distinct(concat(
+    var.cognito_logout_urls,
+    ["${local.frontend_url}/login"],
+  ))
+  google_oauth_scopes  = ["openid", "email", "profile"]
+  cognito_oauth_scopes = concat(local.google_oauth_scopes, ["aws.cognito.signin.user.admin"])
 }
 
 import {

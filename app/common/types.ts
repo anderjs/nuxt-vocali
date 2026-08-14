@@ -1,8 +1,11 @@
 import type { InputProps, ModalProps, NavigationMenuItem } from "@nuxt/ui";
 import type { PCMRecorder } from "@speechmatics/browser-audio-input";
 import type { RealtimeClient } from "@speechmatics/real-time-client";
+import type { AsyncDataRequestStatus } from "nuxt/app";
+import type { ComputedRef, Ref } from "vue";
 import type { AuthUser } from "~/schemas/auth.schema";
 import type { CreatedTranscription } from "~/schemas/transcription.schema";
+import type { TranscriptionPage } from "~/types/transcription";
 
 export type ApiFetchRequest = Parameters<typeof $fetch>[0];
 export type ApiFetchOptions = Parameters<typeof $fetch>[1];
@@ -56,6 +59,20 @@ export enum TranscriptionUploadStatus {
 export interface ListTranscriptionsParams {
   cursor?: string;
   limit: number;
+}
+
+/** Reactive API exposed by the transcription-history data composable. */
+export interface UseTranscriptionsReturn {
+  download(id: string): Promise<void>;
+  error: Ref<Error | undefined>;
+  hasLoadedOnce: ComputedRef<boolean>;
+  initialLoading: ComputedRef<boolean>;
+  isRefreshing: ComputedRef<boolean>;
+  lastUpdatedAt: Ref<Date | null>;
+  next(nextCursor: string): Promise<void>;
+  refresh(): Promise<void>;
+  status: Ref<AsyncDataRequestStatus>;
+  transcriptions: Ref<TranscriptionPage>;
 }
 
 export type AuthIdentityUser = Pick<AuthUser, "email" | "username">;

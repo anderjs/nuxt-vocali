@@ -8,10 +8,13 @@
     "generate": "nuxt generate",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
-    "test:backend": "jest --config jest.config.cjs --runInBand",
+    "test:backend": "jest --config jest.config.cjs --runInBand --roots tests/server",
     "typecheck:lambda": "tsc -p server/tsconfig.json --noEmit",
     "build:lambdas": "esbuild server/handlers/*.ts --platform=node --target=node20 --bundle --format=cjs --outdir=server/dist --outbase=server/handlers",
-    "typecheck": "nuxt typecheck"
+    "typecheck": "nuxt typecheck",
+    "test:frontend": "jest --config jest.config.cjs --runInBand --roots tests/app",
+    "test": "npm run test:backend && npm run test:frontend",
+    "e2e:run": "NUXT_PUBLIC_API_BASE_URL=http://127.0.0.1:4000 NUXT_PUBLIC_COGNITO_USER_POOL_ID=eu-north-1_aaaaaaaaaa NUXT_PUBLIC_COGNITO_CLIENT_ID=12345678901234567890123456 NUXT_PUBLIC_COGNITO_DOMAIN=example.auth.eu-north-1.amazoncognito.com NUXT_PUBLIC_COGNITO_REDIRECT_URI=http://127.0.0.1:3000/auth/callback NUXT_PUBLIC_COGNITO_LOGOUT_REDIRECT_URI=http://127.0.0.1:3000/login start-server-and-test \"nuxi dev --host 127.0.0.1\" http://127.0.0.1:3000 \"cypress run\""
   },
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.1104.0",
@@ -36,9 +39,11 @@
     "@types/aws-lambda": "^8.10.145",
     "@types/jest": "^29.5.14",
     "@types/node": "^20.19.8",
+    "cypress": "^15.20.1",
     "dotenv": "^17.4.2",
     "esbuild": "^0.28.1",
     "jest": "^29.7.0",
+    "start-server-and-test": "^2.1.0",
     "tailwindcss": "^4.3.3",
     "ts-jest": "^29.4.12",
     "typescript": "~5.9.3",

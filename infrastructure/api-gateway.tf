@@ -53,7 +53,7 @@ resource "aws_apigatewayv2_api" "http_api" {
     allow_credentials = false
     allow_headers     = ["authorization", "content-type"]
     allow_methods     = ["GET", "POST", "OPTIONS"]
-    allow_origins     = var.api_cors_allowed_origins
+    allow_origins     = local.browser_allowed_origins
     max_age           = 300
   }
 }
