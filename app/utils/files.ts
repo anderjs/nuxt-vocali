@@ -93,7 +93,13 @@ export function getAudioFileContentType(file: File): string {
     throw new Error("Unsupported audio file");
   }
 
-  return file.type.toLowerCase() || supportedContentTypes[0]!;
+  const [defaultContentType] = supportedContentTypes;
+
+  if (!defaultContentType) {
+    throw new Error("Unsupported audio file");
+  }
+
+  return file.type.toLowerCase() || defaultContentType;
 }
 
 export function formatFileSize(sizeInBytes: number): string {

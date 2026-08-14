@@ -15,7 +15,7 @@ export const handler: APIGatewayProxyHandlerV2 = authHandler(
     async (_event, request, claims) => {
       try {
         const upload = await s3Service.createUploadUrl({
-          userId: claims.sub!,
+          userId: claims.sub,
           fileName: request.body.fileName,
           fileSize: request.body.fileSize,
           contentType: request.body.contentType,

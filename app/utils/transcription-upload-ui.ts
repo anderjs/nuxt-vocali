@@ -26,7 +26,6 @@ export const selectedAudioFileCardClass = [
   "text-foreground",
 ].join(" ");
 
-
 export const selectedAudioFileMetaClass =
   "flex min-w-0 flex-1 items-center justify-between gap-4";
 

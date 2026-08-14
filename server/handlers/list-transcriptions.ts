@@ -13,7 +13,7 @@ export const handler: APIGatewayProxyHandlerV2 = authHandler(
     { query: listTranscriptionsQuerySchema },
     async (_event, request, claims) => {
       const page = await transcriptionRepository.listTranscriptions(
-        claims.sub!,
+        claims.sub,
         request.query,
       );
 

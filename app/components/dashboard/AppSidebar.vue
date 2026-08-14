@@ -17,7 +17,7 @@
         variant="link"
         :items="navigationItems"
         class="w-full"
-:ui="sidebarNavigationMenuUi"
+        :ui="sidebarNavigationMenuUi"
       />
     </nav>
 
