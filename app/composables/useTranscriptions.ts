@@ -1,5 +1,8 @@
 import { useAuthStore } from "~/stores/auth";
-import { listTranscriptions } from "~/services/transcriptions.service";
+import {
+  getTranscriptionDownloadUrl,
+  listTranscriptions,
+} from "~/services/transcriptions.service";
 import {
   TRANSCRIPTIONS_PAGE_SIZE,
   TRANSCRIPTIONS_POLL_INTERVAL_MS,
@@ -8,11 +11,14 @@ import {
   containsProcessingTranscription,
   EMPTY_TRANSCRIPTION_PAGE,
 } from "~/utils/transcriptions";
+import { startBrowserDownload } from "~/utils/download";
 
 export function useTranscriptions() {
   const api = useApi();
   const authStore = useAuthStore();
   const cursor = ref<string>();
+  const lastUpdatedAt = ref<Date | null>(null);
+  const { isRealtimeSessionActive } = useRealtimeTranscriptionState();
 
   const {
     data: transcriptions,
@@ -28,10 +34,14 @@ export function useTranscriptions() {
         return EMPTY_TRANSCRIPTION_PAGE;
       }
 
-      return listTranscriptions(api, {
+      const page = await listTranscriptions(api, {
         cursor: cursor.value,
         limit: TRANSCRIPTIONS_PAGE_SIZE,
       });
+
+      lastUpdatedAt.value = new Date();
+
+      return page;
     },
     {
       default: () => EMPTY_TRANSCRIPTION_PAGE,
@@ -39,11 +49,21 @@ export function useTranscriptions() {
     },
   );
 
-  const loading = computed(
-    () => status.value === "idle" || status.value === "pending",
+  const hasLoadedOnce = computed(() => lastUpdatedAt.value !== null);
+  const initialLoading = computed(
+    () =>
+      !hasLoadedOnce.value &&
+      (status.value === "idle" || status.value === "pending"),
+  );
+  const isRefreshing = computed(
+    () => hasLoadedOnce.value && status.value === "pending",
   );
   const hasProcessingTranscriptions = computed(() =>
     containsProcessingTranscription(transcriptions.value.items),
+  );
+  const shouldPoll = computed(
+    () =>
+      hasProcessingTranscriptions.value && !isRealtimeSessionActive.value,
   );
 
   let pollingTimeout: ReturnType<typeof setTimeout> | undefined;
@@ -58,7 +78,7 @@ export function useTranscriptions() {
   function schedulePolling(): void {
     stopPolling();
 
-    if (!hasProcessingTranscriptions.value) {
+    if (!shouldPoll.value) {
       return;
     }
 
@@ -70,7 +90,7 @@ export function useTranscriptions() {
   async function pollTranscriptions(): Promise<void> {
     pollingTimeout = undefined;
 
-    if (!hasProcessingTranscriptions.value) {
+    if (!shouldPoll.value) {
       return;
     }
 
@@ -91,10 +111,16 @@ export function useTranscriptions() {
     await refreshData();
   }
 
+  async function download(id: string): Promise<void> {
+    const downloadUrl = await getTranscriptionDownloadUrl(api, id);
+
+    startBrowserDownload(downloadUrl);
+  }
+
   watch(
-    hasProcessingTranscriptions,
-    (shouldPoll) => {
-      if (shouldPoll) {
+    shouldPoll,
+    (isPollingEnabled) => {
+      if (isPollingEnabled) {
         schedulePolling();
         return;
       }
@@ -108,7 +134,11 @@ export function useTranscriptions() {
 
   return {
     error,
-    loading,
+    download,
+    hasLoadedOnce,
+    initialLoading,
+    isRefreshing,
+    lastUpdatedAt,
     next,
     refresh,
     status,

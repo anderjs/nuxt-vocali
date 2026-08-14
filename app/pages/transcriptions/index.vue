@@ -10,6 +10,12 @@
         <p class="mt-1 text-sm text-text-secondary">
           Gestiona y consulta tus transcripciones.
         </p>
+        <p
+          v-if="lastUpdatedAt"
+          class="mt-2 text-xs text-text-muted"
+        >
+          Última actualización: {{ formatLastUpdatedEs(lastUpdatedAt) }}
+        </p>
       </div>
 
       <NewTranscriptionButton
@@ -19,7 +25,7 @@
     </div>
 
     <div
-      v-if="loading"
+      v-if="initialLoading"
       class="flex min-h-96 items-center justify-center rounded-xl border border-border bg-background px-6 py-14 text-center"
     >
       <div class="space-y-3">
@@ -31,11 +37,17 @@
       </div>
     </div>
 
-    <TranscriptionsErrorState v-else-if="error" @click="refresh" />
+    <TranscriptionsErrorState
+      v-else-if="error && !hasLoadedOnce"
+      @click="refresh"
+    />
 
     <TranscriptionsTable
       v-else-if="transcriptions.items.length"
       :page="transcriptions"
+      class="transition-opacity duration-200"
+      :class="isRefreshing ? 'opacity-90' : 'opacity-100'"
+      @download="handleDownload"
       @next="next"
     />
     <TranscriptionsEmptyState v-else />
@@ -53,10 +65,22 @@ import NewTranscriptionModal from "~/components/transcriptions/NewTranscriptionM
 import NewTranscriptionButton from "~/components/transcriptions/NewTranscriptionButton.vue";
 import TranscriptionsEmptyState from "~/components/transcriptions/TranscriptionsEmptyState.vue";
 import TranscriptionsErrorState from "~/components/transcriptions/TranscriptionsErrorState.vue";
+import { formatLastUpdatedEs } from "~/utils/date";
 
 const newTranscriptionOpen = ref(false);
+const toast = useToast();
 
-const { error, loading, next, refresh, transcriptions } = useTranscriptions();
+const {
+  download,
+  error,
+  hasLoadedOnce,
+  initialLoading,
+  isRefreshing,
+  lastUpdatedAt,
+  next,
+  refresh,
+  transcriptions,
+} = useTranscriptions();
 
 function openNewTranscriptionModal(): void {
   newTranscriptionOpen.value = true;
@@ -64,6 +88,18 @@ function openNewTranscriptionModal(): void {
 
 async function handleTranscriptionUploaded(): Promise<void> {
   await refresh();
+}
+
+async function handleDownload(id: string): Promise<void> {
+  try {
+    await download(id);
+  } catch {
+    toast.add({
+      title: "No pudimos descargar la transcripción",
+      description: "Inténtalo nuevamente en unos instantes.",
+      color: "error",
+    });
+  }
 }
 
 definePageMeta({
